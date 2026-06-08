@@ -1,0 +1,36 @@
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
+import MyEvent from './pages/MyEvent';
+import Help from './pages/Help';
+import Login from './pages/Login';
+import Favorites from './pages/Favorites';
+
+export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [location.pathname]);
+
+  return (
+    <Layout>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home />} />
+          <Route path="/evenements" element={<Events />} />
+          <Route path="/evenement/:slug" element={<EventDetail />} />
+          <Route path="/mon-evenement" element={<MyEvent />} />
+          <Route path="/centre-aide" element={<Help />} />
+          <Route path="/connexion" element={<Login />} />
+          <Route path="/favoris" element={<Favorites />} />
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </AnimatePresence>
+    </Layout>
+  );
+}
