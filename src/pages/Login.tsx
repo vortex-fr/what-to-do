@@ -32,7 +32,7 @@ export default function Login() {
         className="w-full max-w-md rounded-[32px] bg-white/90 p-8 shadow-float backdrop-blur sm:p-10"
       >
         <div className="mb-6 flex flex-col items-center text-center">
-          <Logo size={34} />
+          <Logo size={58} />
           <h1 className="mt-5 text-2xl font-extrabold text-ink">
             {mode === 'login' ? 'Content de te revoir !' : 'Rejoins la communauté'}
           </h1>

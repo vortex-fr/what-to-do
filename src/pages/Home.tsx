@@ -33,6 +33,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-cloud via-transparent to-transparent" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+            <span className="mb-4 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-white backdrop-blur sm:text-sm">
+              La plateforme qui te dit quoi faire
+            </span>
             <motion.h1
               initial={{ y: 18 }}
               animate={{ y: 0 }}

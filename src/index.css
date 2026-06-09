@@ -127,6 +127,30 @@ body {
 }
 .card-glow:hover::after { opacity: 0.5; }
 
+/* ---- Premium dynamic neon (alternating pulse) ---- */
+@keyframes neonHalo {
+  0%, 100% { opacity: 0.32; filter: blur(20px) saturate(1.1) brightness(1); }
+  50%      { opacity: 0.72; filter: blur(34px) saturate(1.7) brightness(1.25); }
+}
+@keyframes neonBorder {
+  0%, 100% { opacity: 0.85; filter: brightness(1); }
+  50%      { opacity: 1;    filter: brightness(1.35) saturate(1.4); }
+}
+.is-premium.card-glow::after {
+  inset: -14px;
+  animation: neonHalo 2.8s ease-in-out infinite;
+  animation-delay: var(--neon-delay, 0s);
+}
+.is-premium.card-glow::before {
+  animation: neonBorder 2.8s ease-in-out infinite;
+  animation-delay: var(--neon-delay, 0s);
+}
+.is-premium:hover::after { animation-duration: 1.4s; }
+@media (prefers-reduced-motion: reduce) {
+  .is-premium.card-glow::after,
+  .is-premium.card-glow::before { animation: none; }
+}
+
 /* shimmer overlay */
 .shimmer::after {
   content: '';

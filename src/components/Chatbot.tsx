@@ -1,96 +1,99 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { X, Send, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import type { WtdEvent } from '../data/events';
+import { CAT_MAP } from '../data/categories';
+import { interpret } from '../lib/assistant';
+import { formatDateRange, formatPrice } from '../lib/format';
 
 interface Msg {
   from: 'bot' | 'me';
   text: string;
-  chips?: { label: string; to?: string; reply?: string }[];
+  events?: WtdEvent[];
+  filterUrl?: string;
+  chips?: { label: string; reply: string }[];
 }
 
 const WELCOME: Msg = {
   from: 'bot',
-  text: 'Salut, moi c\'est Hi-5 ! 🤙 Dis-moi ce qui te ferait kiffer ce weekend et je te trouve ça.',
+  text: 'Salut, moi c\'est Hi-5 ! 🤙 Dis-moi ce qui te ferait kiffer et je te trouve l\'évènement parfait — partout en Suisse.',
   chips: [
-    { label: '🎤 Un concert', reply: 'concert' },
-    { label: '🍷 Sortir le soir', reply: 'soir' },
-    { label: '🏃 Du sport', reply: 'sport' },
-    { label: '👨‍👩‍👧 En famille', reply: 'famille' },
+    { label: '🎤 Un concert ce week-end', reply: 'un concert ce week-end' },
+    { label: '🍷 Sortir ce soir', reply: 'sortir boire un verre ce soir' },
+    { label: '🏃 Du sport', reply: 'faire du sport' },
+    { label: '🎟️ Gratuit', reply: 'des évènements gratuits' },
   ],
 };
 
-function botReply(input: string): Msg {
-  const t = input.toLowerCase();
-  if (/(concert|musique|celine|chant)/.test(t))
-    return {
-      from: 'bot',
-      text: 'Excellent choix 🎶 « Comme Céline Dion » à La Chaux-de-Fonds devrait te plaire — un hommage live avec orchestre !',
-      chips: [{ label: 'Voir l\'évènement', to: '/evenement/comme-celine-dion' }, { label: 'Tous les concerts', to: '/evenements?cat=culture' }],
-    };
-  if (/(soir|club|bar|night|nuit|fête|fete)/.test(t))
-    return {
-      from: 'bot',
-      text: 'La nuit t\'appelle 🌙 « Fiver Night » au MAD Club, deux nuits de techno mélodique. Ça envoie !',
-      chips: [{ label: 'Voir la soirée', to: '/evenement/fiver-night-2nights' }, { label: 'Vie nocturne', to: '/evenements?cat=gastronomie' }],
-    };
-  if (/(sport|cours|run|trail|vélo|velo|ski|yoga)/.test(t))
-    return {
-      from: 'bot',
-      text: 'Allez, on bouge 🏃 La « Running Pléiade » longe le lac face aux Alpes. 5, 10 ou 21 km, à toi de voir !',
-      chips: [{ label: 'Voir la course', to: '/evenement/running-pleiade' }, { label: 'Tout le sport', to: '/evenements?cat=sport' }],
-    };
-  if (/(famille|enfant|kids|enfants)/.test(t))
-    return {
-      from: 'bot',
-      text: 'En famille, c\'est sacré 👨‍👩‍👧 L\'« Atelier cuisine enfants » à Lausanne va régaler les petits chefs.',
-      chips: [{ label: 'Voir l\'atelier', to: '/evenement/atelier-cuisine-enfants' }, { label: 'Famille & Communauté', to: '/evenements?cat=famille' }],
-    };
-  return {
-    from: 'bot',
-    text: 'Je te trouve ça en deux secondes 🔎 Explore tous les évènements ou affine par catégorie !',
-    chips: [
-      { label: 'Tous les évènements', to: '/evenements' },
-      { label: '🎤 Concert', reply: 'concert' },
-      { label: '🍷 Soirée', reply: 'soir' },
-    ],
-  };
-}
-
-export default function Chatbot({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function Chatbot({
+  open,
+  onClose,
+  seed,
+}: {
+  open: boolean;
+  onClose: () => void;
+  seed: { q: string; n: number } | null;
+}) {
   const [msgs, setMsgs] = useState<Msg[]>([WELCOME]);
   const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastSeed = useRef<number>(0);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' });
-  }, [msgs, open]);
+  }, [msgs, open, typing]);
 
   const send = (text: string) => {
     if (!text.trim()) return;
     setMsgs((m) => [...m, { from: 'me', text }]);
     setInput('');
-    setTimeout(() => setMsgs((m) => [...m, botReply(text)]), 450);
+    setTyping(true);
+    setTimeout(() => {
+      const r = interpret(text);
+      setTyping(false);
+      setMsgs((m) => [
+        ...m,
+        {
+          from: 'bot',
+          text: r.text,
+          events: r.events,
+          filterUrl: r.events.length ? r.filterUrl : undefined,
+        },
+      ]);
+    }, 500);
   };
+
+  // react to a seeded query coming from the hero / nav search
+  useEffect(() => {
+    if (seed && seed.n !== lastSeed.current) {
+      lastSeed.current = seed.n;
+      send(seed.q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
+          initial={{ y: 30, scale: 0.95 }}
+          animate={{ y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.95 }}
           transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-          className="fixed bottom-24 right-4 z-[1100] flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-float sm:right-6"
+          className="fixed bottom-24 right-4 z-[1100] flex h-[72vh] max-h-[620px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-float sm:right-6"
         >
           {/* header */}
           <div className="flex items-center gap-3 bg-gradient-to-r from-violet-500 to-teal-400 px-4 py-3 text-white">
             <img src="/assets/mascot.png" alt="Hi-5" className="h-11 w-11 object-contain drop-shadow" />
             <div className="leading-tight">
-              <p className="font-extrabold">Hi-5</p>
+              <p className="flex items-center gap-1.5 font-extrabold">
+                Hi-5 <Sparkles size={14} className="text-amber-200" />
+              </p>
               <p className="flex items-center gap-1.5 text-xs text-white/90">
-                <span className="h-2 w-2 rounded-full bg-green-300" /> En ligne
+                <span className="h-2 w-2 rounded-full bg-green-300" /> Ton assistant sorties
               </p>
             </div>
             <button onClick={onClose} className="ml-auto rounded-full p-1.5 hover:bg-white/20">
@@ -102,7 +105,7 @@ export default function Chatbot({ open, onClose }: { open: boolean; onClose: () 
           <div ref={scrollRef} className="nice-scroll flex-1 space-y-3 overflow-y-auto bg-cloud p-4">
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-                <div className="max-w-[85%]">
+                <div className="max-w-[88%]">
                   <div
                     className={`rounded-2xl px-4 py-2.5 text-[15px] leading-snug shadow-sm ${
                       m.from === 'me'
@@ -112,19 +115,56 @@ export default function Chatbot({ open, onClose }: { open: boolean; onClose: () 
                   >
                     {m.text}
                   </div>
+
+                  {/* event result cards */}
+                  {m.events && m.events.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {m.events.map((ev) => {
+                        const cat = CAT_MAP[ev.category];
+                        return (
+                          <button
+                            key={ev.id}
+                            onClick={() => {
+                              navigate(`/evenement/${ev.slug}`);
+                              onClose();
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-2xl border border-violet-100 bg-white p-2 text-left transition-colors hover:bg-violet-50"
+                          >
+                            <img src={ev.image} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-bold text-ink">{ev.title}</span>
+                              <span className="block truncate text-xs text-violet-400">
+                                {formatDateRange(ev.dateStart, ev.dateEnd)} · {ev.city}
+                              </span>
+                            </span>
+                            <span
+                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white"
+                              style={{ background: cat.gradient }}
+                            >
+                              {formatPrice(ev.priceFrom) === 'Gratuit' ? 'GRATUIT' : `${ev.priceFrom}.-`}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {m.filterUrl && (
+                        <Link
+                          to={m.filterUrl}
+                          onClick={onClose}
+                          className="block rounded-full bg-gradient-to-r from-violet-500 to-teal-400 px-4 py-2 text-center text-sm font-bold text-white"
+                        >
+                          Voir tous les résultats →
+                        </Link>
+                      )}
+                    </div>
+                  )}
+
+                  {/* suggestion chips */}
                   {m.chips && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {m.chips.map((c, j) => (
                         <button
                           key={j}
-                          onClick={() => {
-                            if (c.to) {
-                              navigate(c.to);
-                              onClose();
-                            } else if (c.reply) {
-                              send(c.reply === c.label ? c.label : c.label);
-                            }
-                          }}
+                          onClick={() => send(c.reply)}
                           className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-600 transition-colors hover:bg-violet-50"
                         >
                           {c.label}
@@ -135,6 +175,20 @@ export default function Chatbot({ open, onClose }: { open: boolean; onClose: () 
                 </div>
               </div>
             ))}
+
+            {typing && (
+              <div className="flex justify-start">
+                <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm">
+                  {[0, 1, 2].map((d) => (
+                    <span
+                      key={d}
+                      className="h-2 w-2 animate-bounce rounded-full bg-violet-300"
+                      style={{ animationDelay: `${d * 0.15}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* input */}
@@ -148,7 +202,7 @@ export default function Chatbot({ open, onClose }: { open: boolean; onClose: () 
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Écris ton message…"
+              placeholder="Demande-moi quoi faire…"
               className="w-full rounded-full bg-cloud px-4 py-2.5 outline-none placeholder:text-violet-300"
             />
             <button className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-teal-400 text-white">

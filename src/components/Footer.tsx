@@ -47,9 +47,9 @@ export default function Footer({ onChat }: { onChat: () => void }) {
 
           <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <Logo size={30} />
+              <Logo size={48} />
               <p className="mt-4 max-w-xs text-sm text-white/85">
-                La plateforme qui te dit quoi faire ce weekend en Suisse romande. Sors,
+                La plateforme qui te dit quoi faire. Partout en Suisse, sors,
                 vibre, partage.
               </p>
             </div>

@@ -1,7 +1,13 @@
-import { Mic, Beer, Bike, Store, Lightbulb, type LucideIcon } from 'lucide-react';
-import type { Category } from '../data/categories';
+import type { Category, CategoryId } from '../data/categories';
 
-const ICONS: Record<string, LucideIcon> = { Mic, Beer, Bike, Store, Lightbulb };
+/** Official category icons by Ben (extracted from the brand PDF). */
+const ICON_IMG: Record<CategoryId, string> = {
+  culture: '/assets/caticon_1.png',
+  gastronomie: '/assets/caticon_2.png',
+  sport: '/assets/caticon_3.png',
+  famille: '/assets/caticon_4.png',
+  business: '/assets/caticon_5.png',
+};
 
 export default function CategoryIcon({
   cat,
@@ -14,17 +20,15 @@ export default function CategoryIcon({
   active?: boolean;
   className?: string;
 }) {
-  const Ic = ICONS[cat.icon] ?? Mic;
   return (
-    <span
-      className={`grid place-items-center rounded-full text-white shadow-card transition-all ${className}`}
-      style={{
-        width: size,
-        height: size,
-        background: active ? cat.gradient : 'linear-gradient(120deg,#d8cfe9,#cfe7e4)',
-      }}
-    >
-      <Ic size={size * 0.42} strokeWidth={2} />
-    </span>
+    <img
+      src={ICON_IMG[cat.id]}
+      alt={cat.label}
+      draggable={false}
+      style={{ width: size, height: size }}
+      className={`select-none rounded-full object-contain transition-all ${
+        active ? '' : 'opacity-50 grayscale'
+      } ${className}`}
+    />
   );
 }

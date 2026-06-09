@@ -1,34 +1,21 @@
-import { MapPin } from 'lucide-react';
-
 /**
- * Faithful recreation of the What-to-do.ch bubble-script wordmark:
- * white fill + purple 3D outline, two lines, with a map-pin as the "dot".
+ * Official What-to-do.ch wordmark by Ben (extracted from the brand PDF).
+ * Transparent PNG — works on light and dark backgrounds.
  */
 export default function Logo({
-  size = 32,
+  size = 44,
   className = '',
 }: {
-  size?: number;
+  size?: number; // rendered height in px
   className?: string;
 }) {
   return (
-    <span
-      className={`logo-wordmark ${className}`}
-      style={{ fontSize: size }}
-      aria-label="What-to-do.ch"
-    >
-      <span className="l1 ink">What-to</span>
-      <span className="l2">
-        <span className="ink">-do</span>
-        <MapPin
-          className="logo-pin inline-block align-middle"
-          size={size * 0.42}
-          fill="#8b5fbf"
-          strokeWidth={2.5}
-          style={{ margin: '0 -0.02em' }}
-        />
-        <span className="ink">ch</span>
-      </span>
-    </span>
+    <img
+      src="/assets/logo.png"
+      alt="What-to-do.ch"
+      draggable={false}
+      style={{ height: size, filter: 'drop-shadow(0 2px 3px rgba(70,55,110,0.28))' }}
+      className={`w-auto select-none ${className}`}
+    />
   );
 }

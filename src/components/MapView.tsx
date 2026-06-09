@@ -40,8 +40,8 @@ export default function MapView({
 }) {
   return (
     <MapContainer
-      center={[46.52, 6.63]}
-      zoom={10}
+      center={[46.8, 8.23]}
+      zoom={7}
       scrollWheelZoom={false}
       className="h-full w-full"
       style={{ minHeight: 400 }}

@@ -6,6 +6,13 @@ import { formatDateRange, formatPrice } from '../lib/format';
 import { useFavorites } from '../lib/store';
 import Countdown from './Countdown';
 
+// Alternating phase so premium cards pulse out of sync (dynamic neon)
+function neonDelay(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i) * (i + 1)) % 28;
+  return `${-(h / 10).toFixed(2)}s`;
+}
+
 function PriceIcon() {
   return <span className="grid h-4 w-4 place-items-center font-extrabold text-violet-500">$</span>;
 }
@@ -47,8 +54,8 @@ export function PremiumCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen(ev)}
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="card-glow group block w-full cursor-pointer rounded-[26px] bg-white p-2.5 text-left shadow-card"
-      style={{ ['--glow' as string]: cat.gradient }}
+      className={`card-glow group block w-full cursor-pointer rounded-[26px] bg-white p-2.5 text-left shadow-card ${ev.premium ? 'is-premium' : ''}`}
+      style={{ ['--glow' as string]: cat.gradient, ['--neon-delay' as string]: neonDelay(ev.id) }}
     >
       {/* image */}
       <div className="relative overflow-hidden rounded-[20px]">
@@ -97,8 +104,8 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
       onClick={() => onOpen(ev)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen(ev)}
       whileHover={{ y: -3 }}
-      className="card-glow group flex w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card"
-      style={{ ['--glow' as string]: cat.gradient }}
+      className={`card-glow group flex w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card ${ev.premium ? 'is-premium' : ''}`}
+      style={{ ['--glow' as string]: cat.gradient, ['--neon-delay' as string]: neonDelay(ev.id) }}
     >
       <div className="relative w-32 shrink-0 overflow-hidden rounded-[18px] sm:w-44">
         <img

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Search, User, Heart, Menu, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
 import { useAuth, useFavorites } from '../lib/store';
+import { useChat } from './ChatContext';
 
 const LINKS = [
   { to: '/', label: 'Accueil' },
@@ -15,11 +16,9 @@ const LINKS = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [q, setQ] = useState('');
   const { user, logout } = useAuth();
   const { favorites } = useFavorites();
-  const navigate = useNavigate();
+  const { openChat } = useChat();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -27,13 +26,6 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/evenements?q=${encodeURIComponent(q)}`);
-    setSearchOpen(false);
-    setOpen(false);
-  };
 
   return (
     <header
@@ -44,7 +36,7 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
         {/* Logo */}
         <Link to="/" className="no-tap relative z-10 shrink-0 pr-2">
-          <Logo size={30} className="drop-shadow-sm" />
+          <Logo size={46} className="drop-shadow-sm" />
         </Link>
 
         {/* Desktop nav */}
@@ -76,9 +68,9 @@ export default function Navbar() {
         {/* Right actions */}
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button
-            onClick={() => setSearchOpen((s) => !s)}
-            aria-label="Rechercher"
-            className="grid h-10 w-10 place-items-center rounded-full bg-violet-500 text-white shadow-card transition-transform hover:scale-105 active:scale-95"
+            onClick={() => openChat()}
+            aria-label="Demander à Hi-5"
+            className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-teal-400 text-white shadow-card transition-transform hover:scale-105 active:scale-95"
           >
             <Search size={18} />
           </button>
@@ -134,33 +126,6 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
-
-      {/* Search drawer */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.form
-            onSubmit={submitSearch}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-violet-100 bg-white/95 backdrop-blur"
-          >
-            <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-              <Search className="text-violet-400" size={20} />
-              <input
-                autoFocus
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Que veux-tu faire ce weekend ?"
-                className="w-full bg-transparent py-1 text-lg outline-none placeholder:text-violet-300"
-              />
-              <button className="rounded-full bg-violet-500 px-5 py-2 font-bold text-white">
-                OK
-              </button>
-            </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
 
       {/* Mobile menu */}
       <AnimatePresence>

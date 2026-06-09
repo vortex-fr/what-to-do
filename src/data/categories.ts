@@ -131,6 +131,7 @@ export const CAT_MAP: Record<CategoryId, Category> = Object.fromEntries(
 ) as Record<CategoryId, Category>;
 
 export const REGIONS = [
+  // Suisse romande
   'Lausanne',
   'Genève',
   'Riviera',
@@ -144,4 +145,15 @@ export const REGIONS = [
   'Sion',
   'Yverdon',
   'Jura',
+  // Suisse alémanique
+  'Zürich',
+  'Berne',
+  'Bâle',
+  'Lucerne',
+  'Saint-Gall',
+  'Zoug',
+  'Coire',
+  // Suisse italienne
+  'Lugano',
+  'Bellinzone',
 ];
