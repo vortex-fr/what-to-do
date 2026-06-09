@@ -46,12 +46,17 @@ export default function Footer({ onChat }: { onChat: () => void }) {
           )}
 
           <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
+            <div className="relative">
               <Logo size={48} />
               <p className="mt-4 max-w-xs text-sm text-white/85">
                 La plateforme qui te dit quoi faire. Partout en Suisse, sors,
                 vibre, partage.
               </p>
+              <img
+                src="/assets/mascot-run.png"
+                alt=""
+                className="pointer-events-none absolute -right-2 top-0 hidden h-24 w-24 animate-floaty object-contain drop-shadow-xl sm:block lg:-right-6 lg:h-28 lg:w-28"
+              />
             </div>
             <div>
               <h4 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-white/70">
