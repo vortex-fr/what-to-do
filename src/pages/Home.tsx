@@ -71,7 +71,7 @@ export default function Home() {
       </section>
 
       {/* ---------------- CATEGORIES ---------------- */}
-      <section className="mx-auto -mt-6 max-w-6xl px-4 sm:px-6">
+      <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 sm:px-6">
         <div className="grid grid-cols-5 gap-1 rounded-[28px] bg-white/70 p-3 shadow-card backdrop-blur sm:gap-4 sm:p-6">
           {CATEGORIES.map((c, i) => (
             <motion.div
@@ -128,7 +128,7 @@ export default function Home() {
 
         <div
           ref={scroller}
-          className="nice-scroll -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0"
+          className="nice-scroll -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-6 pt-4 sm:-mx-3 sm:px-3"
         >
           {premium.map((ev) => (
             <div key={ev.id} className="w-[300px] shrink-0 snap-start sm:w-[330px]">

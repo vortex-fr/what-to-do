@@ -159,7 +159,7 @@ export default function Events() {
 
       {/* Category circles */}
       <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
-        <div className="flex items-start justify-between gap-3 overflow-x-auto pb-2 sm:justify-center sm:gap-10">
+        <div className="flex items-start justify-between gap-3 overflow-x-auto px-2 pb-3 pt-3 sm:justify-center sm:gap-10">
           {CATEGORIES.map((c) => {
             const on = cats.has(c.id);
             return (

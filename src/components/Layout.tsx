@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Chatbot from './Chatbot';
+import CookieBanner from './CookieBanner';
 import { ChatProvider, useChat } from './ChatContext';
 
 function LayoutInner({ children }: { children: ReactNode }) {
@@ -24,6 +25,7 @@ function LayoutInner({ children }: { children: ReactNode }) {
       </button>
 
       <Chatbot open={open} onClose={closeChat} seed={seed} />
+      <CookieBanner />
     </div>
   );
 }

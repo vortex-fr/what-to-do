@@ -9,6 +9,7 @@ import MyEvent from './pages/MyEvent';
 import Help from './pages/Help';
 import Login from './pages/Login';
 import Favorites from './pages/Favorites';
+import { Terms, Privacy, About } from './pages/Legal';
 
 export default function App() {
   const location = useLocation();
@@ -28,6 +29,9 @@ export default function App() {
           <Route path="/centre-aide" element={<Help />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/favoris" element={<Favorites />} />
+          <Route path="/termes-et-conditions" element={<Terms />} />
+          <Route path="/politique-de-confidentialite" element={<Privacy />} />
+          <Route path="/a-propos" element={<About />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </AnimatePresence>

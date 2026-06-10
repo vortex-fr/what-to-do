@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown, MessageCircle, Mail, Search, LifeBuoy, Ticket, CreditCard, UserCog } from 'lucide-react';
+import { useChat } from '../components/ChatContext';
 
 const TOPICS = [
   { i: Ticket, t: 'Réservations', d: 'Billets, places, annulations' },
@@ -22,6 +22,7 @@ const FAQ = [
 export default function Help() {
   const [open, setOpen] = useState<number | null>(0);
   const [q, setQ] = useState('');
+  const { openChat } = useChat();
   const filtered = FAQ.filter((f) => (f.q + f.a).toLowerCase().includes(q.toLowerCase()));
 
   return (
@@ -39,7 +40,7 @@ export default function Help() {
       </section>
 
       {/* Topics */}
-      <section className="mx-auto -mt-8 max-w-5xl px-4 sm:px-6">
+      <section className="relative z-10 mx-auto -mt-8 max-w-5xl px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {TOPICS.map((t) => (
             <div key={t.t} className="rounded-2xl bg-white p-5 text-center shadow-card transition-transform hover:-translate-y-1">
@@ -88,9 +89,12 @@ export default function Help() {
             <a href="mailto:hello@what-to-do.ch" className="flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-teal-600">
               <Mail size={18} /> hello@what-to-do.ch
             </a>
-            <Link to="/" className="flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-3 font-bold text-white">
+            <button
+              onClick={() => openChat()}
+              className="flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-3 font-bold text-white transition-transform hover:scale-[1.02]"
+            >
               <MessageCircle size={18} /> Parler à Hi-5
-            </Link>
+            </button>
           </div>
         </div>
       </section>

@@ -63,7 +63,7 @@ export default function Footer({ onChat }: { onChat: () => void }) {
                 À propos
               </h4>
               <ul className="space-y-2 text-[15px]">
-                <li><Link className="hover:underline" to="/centre-aide">Qui sommes-nous</Link></li>
+                <li><Link className="hover:underline" to="/a-propos">Qui sommes-nous</Link></li>
                 <li><Link className="hover:underline" to="/evenements">Tous les évènements</Link></li>
                 <li><Link className="hover:underline" to="/mon-evenement">Publier un évènement</Link></li>
                 <li><Link className="hover:underline" to="/centre-aide">Centre d'aide</Link></li>
@@ -93,11 +93,17 @@ export default function Footer({ onChat }: { onChat: () => void }) {
                 Retrouve-nous sur
               </h4>
               <div className="flex gap-3">
-                {[Linkedin, Instagram, Facebook].map((Ic, i) => (
+                {([
+                  [Linkedin, 'https://www.linkedin.com/company/what-to-do-ch', 'LinkedIn'],
+                  [Instagram, 'https://www.instagram.com/whattodo.ch', 'Instagram'],
+                  [Facebook, 'https://www.facebook.com/whattodo.ch', 'Facebook'],
+                ] as const).map(([Ic, href, label]) => (
                   <a
-                    key={i}
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
                     className="grid h-11 w-11 place-items-center rounded-full bg-violet-500 text-white shadow-md transition-transform hover:-translate-y-1"
                   >
                     <Ic size={20} />
@@ -111,9 +117,9 @@ export default function Footer({ onChat }: { onChat: () => void }) {
             <span>© 2026 — Tous droits réservés</span>
             <span className="font-extrabold tracking-wide">WWW.WHAT-TO-DO.CH</span>
             <span>
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:underline">Termes & conditions</a>
+              <Link to="/termes-et-conditions" className="hover:underline">Termes & conditions</Link>
               {' · '}
-              <a href="#" onClick={(e) => e.preventDefault()} className="hover:underline">Politique de confidentialité</a>
+              <Link to="/politique-de-confidentialite" className="hover:underline">Politique de confidentialité</Link>
             </span>
           </div>
         </div>

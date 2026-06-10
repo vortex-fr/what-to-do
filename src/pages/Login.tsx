@@ -11,6 +11,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [pwd, setPwd] = useState('');
   const [show, setShow] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -72,7 +73,19 @@ export default function Login() {
 
           {mode === 'login' && (
             <div className="text-right">
-              <button type="button" className="text-sm font-semibold text-violet-400 hover:text-violet-600">Mot de passe oublié ?</button>
+              <button
+                type="button"
+                onClick={() => setResetSent(true)}
+                className="text-sm font-semibold text-violet-400 hover:text-violet-600"
+              >
+                Mot de passe oublié ?
+              </button>
+              {resetSent && (
+                <p className="mt-1 animate-pop rounded-xl bg-teal-50 px-3 py-2 text-left text-xs font-semibold text-teal-600">
+                  📬 Si un compte existe pour {email || 'ton adresse'}, un lien de
+                  réinitialisation vient d'être envoyé (simulation).
+                </p>
+              )}
             </div>
           )}
 

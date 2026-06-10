@@ -17,6 +17,17 @@ function PriceIcon() {
   return <span className="grid h-4 w-4 place-items-center font-extrabold text-violet-500">$</span>;
 }
 
+function PremiumBadge({ className = '' }: { className?: string }) {
+  return (
+    <span
+      className={`flex items-center gap-1 rounded-full bg-white/85 py-1 pl-2 pr-2.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-500 shadow-sm backdrop-blur ${className}`}
+    >
+      <Crown size={11} fill="#fbbf24" className="text-amber-400" />
+      Premium
+    </span>
+  );
+}
+
 function Meta({ ev }: { ev: WtdEvent }) {
   return (
     <div className="space-y-2 text-[13.5px] text-violet-700/90">
@@ -72,13 +83,7 @@ export function PremiumCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent
           {cat.label}
         </span>
         <FavBtn fav={fav} onClick={() => toggleFav(ev.id)} />
-        {ev.premium && (
-          <Crown
-            size={20}
-            className="absolute right-3 top-12 text-amber-400 drop-shadow"
-            fill="#fbbf24"
-          />
-        )}
+        {ev.premium && <PremiumBadge className="absolute bottom-2.5 left-2.5" />}
       </div>
 
       <div className="px-1.5 pb-1.5 pt-3.5">
@@ -120,28 +125,25 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
         >
           {cat.short}
         </span>
+        {ev.premium && <PremiumBadge className="absolute bottom-2 left-2" />}
       </div>
 
       <div className="flex flex-1 flex-col justify-between py-1 pr-1">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[18px] font-extrabold leading-tight text-ink">{ev.title}</h3>
-          {ev.premium ? (
-            <Crown size={18} className="shrink-0 text-amber-400" fill="#fbbf24" />
-          ) : (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFav(ev.id);
-              }}
-              className="shrink-0"
-            >
-              <Heart
-                size={18}
-                className={fav ? 'text-rose-500' : 'text-violet-300'}
-                fill={fav ? '#f43f5e' : 'none'}
-              />
-            </button>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFav(ev.id);
+            }}
+            className="shrink-0"
+          >
+            <Heart
+              size={18}
+              className={fav ? 'text-rose-500' : 'text-violet-300'}
+              fill={fav ? '#f43f5e' : 'none'}
+            />
+          </button>
         </div>
         <div className="mt-2">
           <Meta ev={ev} />
