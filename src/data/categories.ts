@@ -130,30 +130,26 @@ export const CAT_MAP: Record<CategoryId, Category> = Object.fromEntries(
   CATEGORIES.map((c) => [c.id, c])
 ) as Record<CategoryId, Category>;
 
-export const REGIONS = [
-  // Suisse romande
-  'Lausanne',
-  'Genève',
-  'Riviera',
-  'Montreux',
-  'Vevey',
-  'Nyon',
-  'Fribourg',
-  'Neuchâtel',
-  'La Chaux-de-Fonds',
-  'Valais',
-  'Sion',
-  'Yverdon',
-  'Jura',
-  // Suisse alémanique
-  'Zürich',
-  'Berne',
-  'Bâle',
-  'Lucerne',
-  'Saint-Gall',
-  'Zoug',
-  'Coire',
-  // Suisse italienne
-  'Lugano',
-  'Bellinzone',
+/** Régions groupées par canton, avec leurs districts */
+export interface RegionGroup {
+  canton: string;
+  districts: string[];
+}
+
+export const REGION_GROUPS: RegionGroup[] = [
+  { canton: 'Vaud', districts: ['Lausanne', 'Riviera', 'Montreux', 'Vevey', 'Nyon', 'Yverdon', 'Morges', 'Aigle', 'Gros-de-Vaud'] },
+  { canton: 'Genève', districts: ['Genève', 'Carouge', 'Meyrin'] },
+  { canton: 'Fribourg', districts: ['Fribourg', 'Gruyère', 'Broye'] },
+  { canton: 'Neuchâtel', districts: ['Neuchâtel', 'La Chaux-de-Fonds', 'Val-de-Travers'] },
+  { canton: 'Valais', districts: ['Valais', 'Sion', 'Martigny', 'Monthey', 'Brig'] },
+  { canton: 'Jura', districts: ['Jura', 'Delémont', 'Porrentruy'] },
+  { canton: 'Berne', districts: ['Berne', 'Bienne', 'Thoune', 'Interlaken'] },
+  { canton: 'Zürich', districts: ['Zürich', 'Winterthur', 'Uster'] },
+  { canton: 'Bâle', districts: ['Bâle', 'Liestal'] },
+  { canton: 'Suisse centrale', districts: ['Lucerne', 'Zoug', 'Schwyz'] },
+  { canton: 'Suisse orientale', districts: ['Saint-Gall', 'Coire', 'Davos'] },
+  { canton: 'Tessin', districts: ['Lugano', 'Bellinzone', 'Locarno'] },
 ];
+
+/** Liste plate (formulaires, compat) */
+export const REGIONS = REGION_GROUPS.flatMap((g) => g.districts);

@@ -80,7 +80,7 @@ export default function MapView({
                     {formatDateRange(ev.dateStart, ev.dateEnd)}
                   </p>
                   <p className="text-xs text-violet-500">
-                    {ev.city} · {formatPrice(ev.priceFrom)}
+                    {ev.city} · {formatPrice(ev.priceFrom, ev.priceType)}
                   </p>
                 </div>
               </button>

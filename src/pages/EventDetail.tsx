@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, MapPin, CalendarDays, Clock, Users, Crown, Heart, Share2, Ticket, Check,
+  ArrowLeft, MapPin, CalendarDays, Clock, Users, Crown, Heart, Share2, Ticket, Check, ExternalLink,
 } from 'lucide-react';
 import { getEvent, EVENTS, type WtdEvent } from '../data/events';
 import { CAT_MAP } from '../data/categories';
@@ -108,7 +108,7 @@ export default function EventDetail() {
                 { i: CalendarDays, l: 'Date', v: formatLongDate(ev.dateStart) },
                 { i: Clock, l: 'Heure', v: ev.time ?? '—' },
                 { i: MapPin, l: 'Lieu', v: ev.city },
-                { i: Ticket, l: 'Prix', v: formatPrice(ev.priceFrom) },
+                { i: Ticket, l: 'Prix', v: formatPrice(ev.priceFrom, ev.priceType) },
               ].map((t) => (
                 <div key={t.l} className="rounded-2xl bg-white p-4 shadow-card">
                   <t.i className="text-teal-400" size={20} />
@@ -132,10 +132,18 @@ export default function EventDetail() {
             <div className="card-glow rounded-3xl bg-white p-6 shadow-card lg:sticky lg:top-24" style={{ ['--glow' as string]: cat.gradient }}>
               <div className="flex items-end justify-between">
                 <div>
-                  <div className="text-xs font-bold uppercase text-violet-300">À partir de</div>
+                  <div className="text-xs font-bold uppercase text-violet-300">
+                    {ev.priceFrom === null || ev.priceType === 'free'
+                      ? 'Entrée'
+                      : ev.priceType === 'fixed'
+                        ? 'Prix'
+                        : 'À partir de'}
+                  </div>
                   <div className="text-3xl font-extrabold text-ink">
-                    {ev.priceFrom === null ? 'Gratuit' : `${ev.priceFrom}.-`}
-                    {ev.priceFrom !== null && <span className="text-base font-bold text-violet-400"> CHF</span>}
+                    {ev.priceFrom === null || ev.priceType === 'free' ? 'Gratuit' : `${ev.priceFrom}.-`}
+                    {ev.priceFrom !== null && ev.priceType !== 'free' && (
+                      <span className="text-base font-bold text-violet-400"> CHF</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -160,17 +168,45 @@ export default function EventDetail() {
                 <p className="mt-1.5 text-xs text-violet-400">{ev.capacity - ev.going} places restantes</p>
               </div>
 
-              <button
-                onClick={() => setBooked((b) => !b)}
-                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-full py-4 font-extrabold uppercase tracking-wide text-white shadow-card transition-transform hover:scale-[1.02] active:scale-95 ${
-                  booked ? 'bg-teal-500' : 'bg-gradient-to-r from-violet-500 to-violet-600'
-                }`}
-              >
-                {booked ? <><Check size={20} /> Tu y es !</> : <><Ticket size={20} /> Je réserve</>}
-              </button>
-              <p className="mt-3 text-center text-xs text-violet-400">
-                Réservation simulée — aucune transaction réelle.
-              </p>
+              {ev.ticketUrl ? (
+                <>
+                  <a
+                    href={ev.ticketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-violet-600 py-4 font-extrabold uppercase tracking-wide text-white shadow-card transition-transform hover:scale-[1.02] active:scale-95"
+                  >
+                    <Ticket size={20} /> Billetterie officielle <ExternalLink size={16} />
+                  </a>
+                  <button
+                    onClick={() => setBooked((b) => !b)}
+                    className={`mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border-2 py-3 font-bold transition-colors ${
+                      booked
+                        ? 'border-teal-400 bg-teal-50 text-teal-600'
+                        : 'border-violet-200 text-violet-600 hover:bg-violet-50'
+                    }`}
+                  >
+                    {booked ? <><Check size={18} /> Tu y es !</> : <>＋ J'y vais</>}
+                  </button>
+                  <p className="mt-3 text-center text-xs text-violet-400">
+                    Billetterie externe gérée par l'organisateur.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setBooked((b) => !b)}
+                    className={`mt-5 flex w-full items-center justify-center gap-2 rounded-full py-4 font-extrabold uppercase tracking-wide text-white shadow-card transition-transform hover:scale-[1.02] active:scale-95 ${
+                      booked ? 'bg-teal-500' : 'bg-gradient-to-r from-violet-500 to-violet-600'
+                    }`}
+                  >
+                    {booked ? <><Check size={20} /> Tu y es !</> : <><Ticket size={20} /> Je réserve</>}
+                  </button>
+                  <p className="mt-3 text-center text-xs text-violet-400">
+                    Réservation simulée — aucune transaction réelle.
+                  </p>
+                </>
+              )}
             </div>
           </aside>
         </div>

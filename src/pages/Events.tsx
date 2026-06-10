@@ -3,18 +3,29 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search, SlidersHorizontal, X, ChevronDown, MapPin, Map as MapIcon,
-  List as ListIcon, CalendarDays, Tag,
+  List as ListIcon, CalendarDays, Tag, LocateFixed, Radio,
 } from 'lucide-react';
 import { EVENTS, type WtdEvent } from '../data/events';
-import { CATEGORIES, CAT_MAP, REGIONS, type CategoryId } from '../data/categories';
+import { CATEGORIES, CAT_MAP, REGION_GROUPS, type CategoryId } from '../data/categories';
 import { ListCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
 import CategoryIcon from '../components/CategoryIcon';
 
 const MapView = lazy(() => import('../components/MapView'));
 
-type Sort = 'popularite' | 'avenir' | 'region' | 'categories';
-type DateF = 'all' | 'weekend' | 'week' | 'month';
+type Sort = 'avenir' | 'region' | 'categories';
+type DateF = 'all' | 'live' | 'weekend' | 'week' | 'month';
+
+function distKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
 
 const HERO =
   'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=2000&q=80';
@@ -28,12 +39,36 @@ export default function Events() {
   const [regions, setRegions] = useState<Set<string>>(new Set());
   const [subs, setSubs] = useState<Set<string>>(new Set());
   const [dateF, setDateF] = useState<DateF>('all');
-  const [sort, setSort] = useState<Sort>('popularite');
+  const [sort, setSort] = useState<Sort>('avenir');
   const [modal, setModal] = useState<WtdEvent | null>(null);
   const [active, setActive] = useState<string | null>(null);
   const [openDrop, setOpenDrop] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const [radius, setRadius] = useState(25);
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [geoErr, setGeoErr] = useState('');
+
+  const askGeo = () => {
+    if (!navigator.geolocation) {
+      setGeoErr('Géolocalisation non disponible sur ce navigateur.');
+      return;
+    }
+    setGeoBusy(true);
+    setGeoErr('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoBusy(false);
+      },
+      () => {
+        setGeoErr('Impossible de récupérer ta position (autorisation refusée ?).');
+        setGeoBusy(false);
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     setQuery(params.get('q') ?? '');
@@ -53,6 +88,8 @@ export default function Events() {
     setRegions(new Set());
     setSubs(new Set());
     setDateF('all');
+    setGeo(null);
+    setGeoErr('');
     setParams({});
   };
 
@@ -68,23 +105,25 @@ export default function Events() {
         if (!hay.includes(q)) return false;
       }
       if (dateF !== 'all') {
-        const d = new Date(e.dateStart);
-        const diff = (d.getTime() - now.getTime()) / 86400000;
+        const start = new Date(e.dateStart).getTime();
+        const end = e.dateEnd ? new Date(e.dateEnd).getTime() : start + 6 * 3600000;
+        const diff = (start - now.getTime()) / 86400000;
+        if (dateF === 'live' && !(start <= now.getTime() && end >= now.getTime())) return false;
         if (dateF === 'weekend' && (diff < 0 || diff > 9)) return false;
         if (dateF === 'week' && (diff < 0 || diff > 7)) return false;
         if (dateF === 'month' && (diff < 0 || diff > 31)) return false;
       }
+      if (geo && distKm(geo.lat, geo.lng, e.lat, e.lng) > radius) return false;
       return true;
     });
 
     list = [...list].sort((a, b) => {
-      if (sort === 'popularite') return b.popularity - a.popularity;
       if (sort === 'avenir') return +new Date(a.dateStart) - +new Date(b.dateStart);
       if (sort === 'region') return a.region.localeCompare(b.region);
-      return a.category.localeCompare(b.category) || b.popularity - a.popularity;
+      return a.category.localeCompare(b.category) || +new Date(a.dateStart) - +new Date(b.dateStart);
     });
     return list;
-  }, [cats, regions, subs, query, dateF, sort]);
+  }, [cats, regions, subs, query, dateF, sort, geo, radius]);
 
   const activeChips = [
     ...[...cats].map((c) => ({ k: 'cat' as const, v: c, label: CAT_MAP[c].label })),
@@ -155,16 +194,23 @@ export default function Events() {
             open={openDrop === 'dates'}
             setOpen={(o) => setOpenDrop(o ? 'dates' : null)}
             icon={<CalendarDays size={16} />}
-            label={dateF === 'all' ? 'Dates' : { weekend: 'Ce weekend', week: 'Cette semaine', month: 'Ce mois' }[dateF]}
+            label={dateF === 'all' ? 'Dates' : { live: '● En cours', weekend: 'Ce weekend', week: 'Cette semaine', month: 'Ce mois' }[dateF]}
           >
             {([
               ['all', 'Toutes les dates'],
+              ['live', '● En cours'],
               ['weekend', 'Ce weekend'],
               ['week', 'Cette semaine'],
               ['month', 'Ce mois-ci'],
             ] as [DateF, string][]).map(([v, l]) => (
               <DropItem key={v} active={dateF === v} onClick={() => { setDateF(v); setOpenDrop(null); }}>
-                {l}
+                {v === 'live' ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Radio size={14} className="text-teal-500" /> En cours
+                  </span>
+                ) : (
+                  l
+                )}
               </DropItem>
             ))}
           </Dropdown>
@@ -176,14 +222,47 @@ export default function Events() {
             icon={<MapPin size={16} />}
             label={regions.size ? `Région (${regions.size})` : 'Région'}
           >
-            <div className="max-h-64 overflow-y-auto">
-              {REGIONS.map((r) => (
-                <DropItem key={r} active={regions.has(r)} onClick={() => toggle(regions, r, setRegions)} check>
-                  {r}
-                </DropItem>
+            <div className="nice-scroll max-h-72 overflow-y-auto">
+              {REGION_GROUPS.map((g) => (
+                <div key={g.canton}>
+                  <div className="px-3 pb-0.5 pt-2 text-[11px] font-extrabold uppercase tracking-wider text-violet-300">
+                    {g.canton}
+                  </div>
+                  {g.districts.map((r) => (
+                    <DropItem key={r} active={regions.has(r)} onClick={() => toggle(regions, r, setRegions)} check>
+                      {r}
+                    </DropItem>
+                  ))}
+                </div>
               ))}
             </div>
           </Dropdown>
+
+          {/* GPS + rayon */}
+          <button
+            onClick={() => (geo ? setGeo(null) : askGeo())}
+            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+              geo
+                ? 'border-teal-400 bg-teal-50 text-teal-600'
+                : 'border-violet-200 bg-white text-violet-600'
+            }`}
+          >
+            <LocateFixed size={16} className={geoBusy ? 'animate-spin' : ''} />
+            {geoBusy ? 'Localisation…' : geo ? 'Autour de moi ✓' : 'Autour de moi'}
+          </button>
+          {geo && (
+            <select
+              value={radius}
+              onChange={(e) => setRadius(Number(e.target.value))}
+              className="rounded-full border border-teal-300 bg-white px-3 py-2 text-sm font-bold text-teal-600 outline-none"
+            >
+              {[5, 10, 25, 50, 100].map((km) => (
+                <option key={km} value={km}>
+                  Rayon {km} km
+                </option>
+              ))}
+            </select>
+          )}
 
           <Dropdown
             id="cat"
@@ -202,7 +281,7 @@ export default function Events() {
             ))}
           </Dropdown>
 
-          {(activeChips.length > 0 || dateF !== 'all' || query) && (
+          {(activeChips.length > 0 || dateF !== 'all' || query || geo) && (
             <button
               onClick={reset}
               className="rounded-full bg-violet-100 px-4 py-2 text-sm font-bold text-violet-600 transition-colors hover:bg-violet-200"
@@ -239,11 +318,14 @@ export default function Events() {
           </div>
         )}
 
+        {geoErr && (
+          <p className="mt-2 text-sm font-semibold text-rose-500">{geoErr}</p>
+        )}
+
         {/* Sort */}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
           <span className="font-bold uppercase tracking-wide text-violet-400">Trier selon :</span>
           {([
-            ['popularite', 'Popularité'],
             ['avenir', 'À venir'],
             ['region', 'Région'],
             ['categories', 'Catégories'],

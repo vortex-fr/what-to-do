@@ -18,12 +18,15 @@ export function formatLongDate(startISO: string): string {
   return `${DAYS[s.getDay()]} ${s.getDate()} ${MONTHS[s.getMonth()]} ${s.getFullYear()}`;
 }
 
-export function formatPrice(p: number | null): string {
-  if (p === null) return 'Gratuit';
+import type { PriceType } from '../data/events';
+
+export function formatPrice(p: number | null, type?: PriceType): string {
+  if (p === null || type === 'free') return 'Gratuit';
+  if (type === 'fixed') return `${p}.- CHF`;
   return `Dès ${p}.- CHF`;
 }
 
-export function formatPriceShort(p: number | null): string {
-  if (p === null) return 'Gratuit';
+export function formatPriceShort(p: number | null, type?: PriceType): string {
+  if (p === null || type === 'free') return 'Gratuit';
   return `${p}.- CHF`;
 }

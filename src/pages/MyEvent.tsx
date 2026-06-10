@@ -22,7 +22,9 @@ const DEFAULT_IMG =
 
 const empty = {
   title: '', category: 'culture' as CategoryId, sub: '', region: 'Lausanne',
-  city: 'Lausanne', venue: '', date: '2026-07-01', time: '19:00', priceFrom: '', premium: true,
+  city: 'Lausanne', venue: '', date: '2026-07-01', time: '19:00',
+  priceType: 'free' as 'free' | 'from' | 'fixed', priceFrom: '',
+  capacity: '', ticketUrl: '', premium: true,
   image: '', description: '', tags: '',
   lat: null as number | null, lng: null as number | null,
 };
@@ -67,13 +69,15 @@ export default function MyEvent() {
     lat: form.lat ?? (CITY_COORDS[form.city] ?? CITY_COORDS[form.region] ?? CITY_COORDS.Lausanne)[0],
     lng: form.lng ?? (CITY_COORDS[form.city] ?? CITY_COORDS[form.region] ?? CITY_COORDS.Lausanne)[1],
     image: form.image || DEFAULT_IMG,
-    priceFrom: form.priceFrom ? Number(form.priceFrom) : null,
+    priceFrom: form.priceType === 'free' ? null : form.priceFrom ? Number(form.priceFrom) : null,
+    priceType: form.priceType,
+    ticketUrl: form.ticketUrl.trim() || undefined,
     dateStart: `${form.date}T${form.time}:00`,
     time: form.time,
     premium: form.premium,
     organizer: user?.name ?? 'Toi',
     popularity: 50,
-    capacity: 200,
+    capacity: form.capacity ? Number(form.capacity) : 200,
     going: 0,
     short: form.description.slice(0, 90),
     description: form.description || 'Décris ton évènement pour donner envie au public de venir !',
@@ -177,10 +181,69 @@ export default function MyEvent() {
             </p>
           </Field>
 
-          <div className="grid gap-5 sm:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Date"><input type="date" value={form.date} onChange={(e) => set('date', e.target.value)} className="inp" /></Field>
             <Field label="Heure"><input type="time" value={form.time} onChange={(e) => set('time', e.target.value)} className="inp" /></Field>
-            <Field label="Prix (CHF)"><input type="number" min="0" value={form.priceFrom} onChange={(e) => set('priceFrom', e.target.value)} placeholder="Gratuit" className="inp" /></Field>
+          </div>
+
+          {/* Prix : toutes les options (gratuit / dès / fixe) */}
+          <Field label="Prix">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex gap-1 rounded-full bg-violet-100 p-1">
+                {([
+                  ['free', 'Gratuit'],
+                  ['from', 'Dès…'],
+                  ['fixed', 'Prix fixe'],
+                ] as const).map(([v, l]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => set('priceType', v)}
+                    className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                      form.priceType === v ? 'bg-white text-violet-700 shadow' : 'text-violet-500'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+              {form.priceType !== 'free' && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={form.priceFrom}
+                    onChange={(e) => set('priceFrom', e.target.value)}
+                    placeholder={form.priceType === 'from' ? 'Dès… CHF' : 'CHF'}
+                    className="inp !w-32"
+                  />
+                  <span className="font-bold text-violet-400">CHF</span>
+                </div>
+              )}
+            </div>
+          </Field>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Taille de l'évènement (places)">
+              <input
+                type="number"
+                min="1"
+                value={form.capacity}
+                onChange={(e) => set('capacity', e.target.value)}
+                placeholder="Ex : 200"
+                className="inp"
+              />
+            </Field>
+            <Field label="URL billetterie (optionnel)">
+              <input
+                type="url"
+                value={form.ticketUrl}
+                onChange={(e) => set('ticketUrl', e.target.value)}
+                placeholder="https://billetterie.ch/mon-event"
+                className="inp"
+              />
+            </Field>
           </div>
 
           <Field label="Image de l'évènement">

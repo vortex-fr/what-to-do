@@ -1,5 +1,7 @@
 import type { CategoryId } from './categories';
 
+export type PriceType = 'free' | 'from' | 'fixed';
+
 export interface WtdEvent {
   id: string;
   slug: string;
@@ -13,6 +15,8 @@ export interface WtdEvent {
   lng: number;
   image: string;
   priceFrom: number | null; // null = Gratuit
+  priceType?: PriceType; // défaut: 'free' si priceFrom null, sinon 'from'
+  ticketUrl?: string; // URL billetterie externe
   dateStart: string; // ISO
   dateEnd?: string;
   time?: string;
@@ -44,6 +48,8 @@ export const EVENTS: WtdEvent[] = [
     lng: 6.8255,
     image: img('photo-1470229722913-7c0e2dbbafd3'),
     priceFrom: 30,
+    priceType: 'from',
+    ticketUrl: 'https://www.petzi.ch',
     dateStart: '2026-04-27T17:30:00',
     time: '17:30',
     premium: true,
@@ -400,6 +406,8 @@ export const EVENTS: WtdEvent[] = [
     lng: 6.6515,
     image: img('photo-1517604931442-7e0c8ed2963c'),
     priceFrom: 12,
+    priceType: 'fixed',
+    ticketUrl: 'https://www.ticketcorner.ch',
     dateStart: '2026-07-24T21:30:00',
     time: '21:30',
     premium: false,
@@ -797,18 +805,18 @@ export const EVENTS: WtdEvent[] = [
 ];
 
 /**
- * Evergreen demo: shift every event forward so the earliest one starts a few
- * days from "now", preserving relative spacing/order. Countdowns always tick
- * and nothing is stuck in the past, whatever day the app is opened.
+ * Evergreen demo: shift every event so the earliest one started ~2 days ago,
+ * preserving relative spacing/order. Multi-day events (whose end is later) are
+ * thus "en cours", the rest tick toward the future — whatever day the app is
+ * opened.
  */
 (() => {
   const DAY = 86400000;
   const now = Date.now();
   const starts = EVENTS.map((e) => new Date(e.dateStart).getTime());
   const min = Math.min(...starts);
-  const earliestOffset = 3 * DAY; // earliest event ~3 days out
+  const earliestOffset = -2 * DAY; // earliest event started ~2 days ago
   const shiftDays = Math.ceil((now + earliestOffset - min) / DAY);
-  if (shiftDays <= 0) return;
   const shift = shiftDays * DAY;
   for (const e of EVENTS) {
     e.dateStart = new Date(new Date(e.dateStart).getTime() + shift).toISOString();

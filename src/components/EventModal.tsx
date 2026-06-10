@@ -123,7 +123,7 @@ function ModalInner({
           </span>
           <span className="flex items-center gap-1">
             <span className="font-extrabold text-violet-500">$</span>
-            {formatPrice(ev.priceFrom)}
+            {formatPrice(ev.priceFrom, ev.priceType)}
           </span>
         </div>
       </div>

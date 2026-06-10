@@ -34,7 +34,7 @@ function Meta({ ev }: { ev: WtdEvent }) {
         </span>
         <span className="flex items-center gap-1 font-semibold">
           <PriceIcon />
-          {formatPrice(ev.priceFrom)}
+          {formatPrice(ev.priceFrom, ev.priceType)}
         </span>
       </div>
     </div>

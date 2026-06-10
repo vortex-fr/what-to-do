@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
 import { useAuth, useFavorites } from '../lib/store';
 import { useChat } from './ChatContext';
+import NotificationBell from './NotificationBell';
 
 const LINKS = [
   { to: '/', label: 'Accueil' },
@@ -74,6 +75,8 @@ export default function Navbar() {
           >
             <Search size={18} />
           </button>
+
+          <NotificationBell />
 
           <Link
             to="/favoris"
