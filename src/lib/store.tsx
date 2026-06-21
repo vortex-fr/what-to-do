@@ -57,6 +57,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return [];
     }
   });
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(SEARCH_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
@@ -73,6 +80,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
   }, [notifications]);
+  useEffect(() => {
+    localStorage.setItem(SEARCH_KEY, JSON.stringify(savedSearches));
+  }, [savedSearches]);
 
   const toggleFav = useCallback((id: string) => {
     setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
@@ -124,6 +134,47 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setNotifications((list) => list.map((n) => ({ ...n, read: true })));
   }, []);
   const clearNotifications = useCallback(() => setNotifications([]), []);
+  const removeNotif = useCallback(
+    (id: string) => setNotifications((list) => list.filter((n) => n.id !== id)),
+    []
+  );
+
+  // Recherches sauvegardées (façon anibis.ch) : mot-clé + catégorie + région + rayon.
+  const addSavedSearch = useCallback(
+    (s: Omit<SavedSearch, 'id' | 'ts'>) => {
+      const search: SavedSearch = { ...s, id: `s-${Date.now()}`, ts: Date.now() };
+      setSavedSearches((list) => [search, ...list]);
+      const q = (s.query || '').toLowerCase();
+      const matches = EVENTS.filter((e) => {
+        if (new Date(e.dateStart).getTime() < Date.now()) return false;
+        if (s.category && e.category !== s.category) return false;
+        if (s.region && e.region !== s.region) return false;
+        if (q) {
+          const hay = `${e.title} ${e.city} ${e.sub} ${e.tags.join(' ')}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      }).slice(0, 2);
+      setTimeout(() => {
+        pushNotif({
+          title: `🔎 Recherche sauvegardée${s.query ? ` : « ${s.query} »` : ''}`,
+          body: 'Tu seras averti·e des nouveaux évènements qui correspondent.',
+        });
+        matches.forEach((e) =>
+          pushNotif({
+            title: `Correspond à ta recherche : ${e.title}`,
+            body: `${e.city} · ${formatDateRange(e.dateStart, e.dateEnd)}`,
+            slug: e.slug,
+          })
+        );
+      }, 0);
+    },
+    [pushNotif]
+  );
+  const removeSavedSearch = useCallback(
+    (id: string) => setSavedSearches((list) => list.filter((s) => s.id !== id)),
+    []
+  );
 
   const addMyEvent = useCallback(
     (e: WtdEvent) => {
@@ -145,8 +196,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [user, login, logout, myEvents, addMyEvent, removeMyEvent]
   );
   const notifVal = useMemo(
-    () => ({ notifications, alerts, toggleAlert, markAllRead, clearNotifications }),
-    [notifications, alerts, toggleAlert, markAllRead, clearNotifications]
+    () => ({
+      notifications, alerts, toggleAlert, markAllRead, clearNotifications, removeNotif,
+      savedSearches, addSavedSearch, removeSavedSearch,
+    }),
+    [notifications, alerts, toggleAlert, markAllRead, clearNotifications, removeNotif,
+      savedSearches, addSavedSearch, removeSavedSearch]
   );
 
   return (
@@ -196,16 +251,29 @@ export interface Notif {
   read: boolean;
   slug?: string;
 }
+export interface SavedSearch {
+  id: string;
+  ts: number;
+  query: string;
+  category?: CategoryId;
+  region?: string;
+  radius?: number;
+}
 interface NotifCtx {
   notifications: Notif[];
   alerts: CategoryId[];
   toggleAlert: (cat: CategoryId) => void;
   markAllRead: () => void;
   clearNotifications: () => void;
+  removeNotif: (id: string) => void;
+  savedSearches: SavedSearch[];
+  addSavedSearch: (s: Omit<SavedSearch, 'id' | 'ts'>) => void;
+  removeSavedSearch: (id: string) => void;
 }
 const NotificationsContext = createContext<NotifCtx | null>(null);
 const ALERTS_KEY = 'wtd:alerts';
 const NOTIF_KEY = 'wtd:notifs';
+const SEARCH_KEY = 'wtd:searches';
 
 export function useNotifications() {
   const ctx = useContext(NotificationsContext);

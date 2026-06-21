@@ -8,6 +8,7 @@ import { useAuth } from '../lib/store';
 import { PremiumCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
 import AddressAutocomplete from '../components/AddressAutocomplete';
+import Mascot from '../components/Mascot';
 import { optimizeImage, formatBytes, type OptimizedImage } from '../lib/image';
 
 const CITY_COORDS: Record<string, [number, number]> = {
@@ -119,7 +120,9 @@ export default function MyEvent() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-8 flex flex-col gap-1">
+      <div className="mb-8 flex items-start gap-4">
+        <Mascot pose="idea" size={84} className="hidden shrink-0 sm:block" />
+        <div className="flex flex-col gap-1">
         <span className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-teal-400">
           <Sparkles size={16} /> Espace organisateur
         </span>
@@ -128,6 +131,7 @@ export default function MyEvent() {
           Remplis le formulaire, vois l'aperçu en direct, et fais rayonner ton évènement partout en Suisse.
           {!user && <> <Link to="/connexion" className="font-bold text-violet-500 underline">Connecte-toi</Link> pour le sauvegarder.</>}
         </p>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">

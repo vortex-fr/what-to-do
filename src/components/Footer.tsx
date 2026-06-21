@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Linkedin, Instagram, Facebook, Send, MessageCircle } from 'lucide-react';
 import Logo from './Logo';
+import Mascot from './Mascot';
 
 export default function Footer({ onChat }: { onChat: () => void }) {
   const [email, setEmail] = useState('');
@@ -52,10 +53,11 @@ export default function Footer({ onChat }: { onChat: () => void }) {
                 La plateforme qui te dit quoi faire. Partout en Suisse, sors,
                 vibre, partage.
               </p>
-              <img
-                src="/assets/mascot-run.png"
-                alt=""
-                className="pointer-events-none absolute -right-2 top-0 hidden h-24 w-24 animate-floaty object-contain drop-shadow-xl sm:block lg:-right-6 lg:h-28 lg:w-28"
+              <Mascot
+                pose="party"
+                size={112}
+                delay={1}
+                className="pointer-events-none absolute -right-2 top-0 hidden drop-shadow-xl sm:block lg:-right-6"
               />
             </div>
             <div>
@@ -77,11 +79,7 @@ export default function Footer({ onChat }: { onChat: () => void }) {
                 onClick={onChat}
                 className="group flex items-center gap-3 rounded-2xl bg-white/15 p-3 text-left transition-colors hover:bg-white/25"
               >
-                <img
-                  src="/assets/mascot.png"
-                  alt="Hi-5"
-                  className="h-12 w-12 animate-floaty object-contain drop-shadow"
-                />
+                <Mascot pose="app" size={48} delay={2} className="drop-shadow" />
                 <span className="text-[15px] font-semibold leading-tight underline-offset-2 group-hover:underline">
                   Engage une conversation<br />avec notre chatbot Hi-5
                 </span>

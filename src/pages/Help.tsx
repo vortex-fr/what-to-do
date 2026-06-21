@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, MessageCircle, Mail, Search, LifeBuoy, Ticket, CreditCard, UserCog } from 'lucide-react';
 import { useChat } from '../components/ChatContext';
+import Mascot from '../components/Mascot';
 
 const TOPICS = [
   { i: Ticket, t: 'Réservations', d: 'Billets, places, annulations' },
@@ -30,7 +31,7 @@ export default function Help() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-violet-500 via-violet-600 to-violet-700 px-4 py-16 text-center text-white sm:py-20">
         <div className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-teal-400/30 blur-3xl" />
-        <img src="/assets/mascot-run.png" alt="Hi-5" className="mx-auto h-28 w-28 animate-floaty object-contain drop-shadow-xl" />
+        <Mascot pose="conf" size={128} className="mx-auto drop-shadow-xl" />
         <h1 className="mt-4 text-3xl font-extrabold sm:text-5xl">Centre d'aide</h1>
         <p className="mt-2 text-white/80">Une question ? On a la réponse. Sinon, Hi-5 s'en charge.</p>
         <div className="mx-auto mt-6 flex max-w-xl items-center gap-2 rounded-full bg-white p-2 shadow-glow">

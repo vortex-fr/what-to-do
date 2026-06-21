@@ -127,9 +127,11 @@ body {
 }
 .card-glow:hover::after { opacity: 0.5; }
 
-/* ---- Premium : anneau de lumière rotatif (light ring) ----
-   Un arc lumineux parcourt lentement la bordure de la carte, par-dessus le
-   dégradé de la catégorie. Halo statique doux, pas de pulsation. */
+/* ---- Premium : néon vivant (réf. vidéo « Light neon 02 ») ----
+   Une bordure néon (couleur de catégorie) entoure la carte en permanence, et
+   un point lumineux blanc surbrillant parcourt le contour en laissant une
+   traînée de bloom. Le bloom travelle AVEC la lumière → effet néon, jamais
+   coupé (le parent ne clippe pas). Accélère au survol. */
 @property --wtd-angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -138,30 +140,54 @@ body {
 @keyframes ringSpin {
   to { --wtd-angle: 360deg; }
 }
+
+/* trait néon net : couleur catégorie en continu + hotspot blanc qui tourne */
 .is-premium.card-glow::before {
-  padding: 2.5px;
+  inset: -2px;
+  padding: 2px;
   background:
     conic-gradient(
       from var(--wtd-angle),
       transparent 0deg,
-      rgba(255, 255, 255, 0.55) 295deg,
-      #fff 322deg,
-      rgba(255, 255, 255, 0.55) 349deg,
+      rgba(255, 255, 255, 0.9) 300deg,
+      #ffffff 330deg,
+      rgba(255, 255, 255, 0.9) 352deg,
       transparent 360deg
     ),
     var(--glow, linear-gradient(135deg, #ff9d6c, #ff5e8a));
   opacity: 1;
-  animation: ringSpin 7s linear infinite;
+  animation: ringSpin 6s linear infinite;
   animation-delay: var(--neon-delay, 0s);
 }
+
+/* bloom néon : même conique, flouté, qui rayonne autour (non masqué) */
 .is-premium.card-glow::after {
-  inset: -12px;
-  opacity: 0.34;
+  inset: -5px;
+  padding: 0;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      from var(--wtd-angle),
+      transparent 0deg,
+      rgba(255, 255, 255, 0) 285deg,
+      rgba(255, 255, 255, 0.95) 330deg,
+      rgba(255, 255, 255, 0) 360deg
+    ),
+    var(--glow, linear-gradient(135deg, #ff9d6c, #ff5e8a));
+  filter: blur(11px);
+  opacity: 0.7;
+  -webkit-mask: none;
+  mask: none;
+  animation: ringSpin 6s linear infinite;
+  animation-delay: var(--neon-delay, 0s);
 }
-.is-premium.card-glow:hover::before { animation-duration: 2.6s; }
-.is-premium.card-glow:hover::after { opacity: 0.5; }
+.is-premium.card-glow:hover::before,
+.is-premium.card-glow:hover::after { animation-duration: 2.4s; }
+.is-premium.card-glow:hover::after { opacity: 0.9; }
+
 @media (prefers-reduced-motion: reduce) {
-  .is-premium.card-glow::before { animation: none; }
+  .is-premium.card-glow::before,
+  .is-premium.card-glow::after { animation: none; }
 }
 
 /* shimmer overlay */
@@ -181,6 +207,25 @@ body {
 .leaflet-popup-tip { background: #fff; }
 .wtd-pin { filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); transition: transform .2s; }
 .wtd-pin:hover { transform: scale(1.18) translateY(-2px); }
+
+/* ---- Mascotte Hi-5 : salve de 2-3 mouvements puis pause 3-4s (corr. Ben) ---- */
+@keyframes hi5salve {
+  0%   { transform: rotate(0deg) translateY(0); }
+  3%   { transform: rotate(-8deg) translateY(-5px); }
+  6%   { transform: rotate(7deg) translateY(-2px); }
+  9%   { transform: rotate(-6deg) translateY(-4px); }
+  12%  { transform: rotate(4deg) translateY(-1px); }
+  15%  { transform: rotate(0deg) translateY(0); }
+  100% { transform: rotate(0deg) translateY(0); } /* pause longue */
+}
+.hi5-anim {
+  animation: hi5salve 5.5s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+.hi5-anim.delay-1 { animation-delay: 1.2s; }
+.hi5-anim.delay-2 { animation-delay: 2.6s; }
+@media (prefers-reduced-motion: reduce) { .hi5-anim { animation: none; } }
 
 /* hide number input arrows etc not needed */
 .no-tap { -webkit-tap-highlight-color: transparent; }

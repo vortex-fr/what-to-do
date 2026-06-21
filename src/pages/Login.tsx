@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../lib/store';
 import Logo from '../components/Logo';
+import Mascot from '../components/Mascot';
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -33,6 +34,7 @@ export default function Login() {
         className="w-full max-w-md rounded-[32px] bg-white/90 p-8 shadow-float backdrop-blur sm:p-10"
       >
         <div className="mb-6 flex flex-col items-center text-center">
+          <Mascot pose="confiance" size={84} className="mb-1" />
           <Logo size={58} />
           <h1 className="mt-5 text-2xl font-extrabold text-ink">
             {mode === 'login' ? 'Content de te revoir !' : 'Rejoins la communauté'}

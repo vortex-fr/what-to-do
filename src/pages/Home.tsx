@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, TrendingUp, Star, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, TrendingUp, Star, Users } from 'lucide-react';
 import { EVENTS, type WtdEvent } from '../data/events';
 import { CATEGORIES } from '../data/categories';
 import { PremiumCard } from '../components/EventCard';
@@ -12,15 +12,20 @@ import CategoryIcon from '../components/CategoryIcon';
 const HERO =
   'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=2000&q=80';
 
+const PER_PAGE = 8;
+
 export default function Home() {
   const [modal, setModal] = useState<WtdEvent | null>(null);
+  const [page, setPage] = useState(0);
   const premium = EVENTS.filter((e) => e.premium);
   const trending = [...EVENTS].sort((a, b) => b.popularity - a.popularity).slice(0, 8);
-  const scroller = useRef<HTMLDivElement>(null);
 
-  const scrollBy = (dir: number) => {
-    scroller.current?.scrollBy({ left: dir * 340, behavior: 'smooth' });
-  };
+  // pages de 8 (2 rangées × 4) — la carte sponsorisée ferme la dernière page
+  type Item = { kind: 'ev'; ev: WtdEvent } | { kind: 'ad' };
+  const items: Item[] = [...premium.map((ev) => ({ kind: 'ev' as const, ev })), { kind: 'ad' as const }];
+  const pages: Item[][] = [];
+  for (let i = 0; i < items.length; i += PER_PAGE) pages.push(items.slice(i, i + PER_PAGE));
+  const current = Math.min(page, pages.length - 1);
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -28,24 +33,22 @@ export default function Home() {
       <section className="relative">
         <div className="relative h-[440px] overflow-hidden sm:h-[500px]">
           <img src={HERO} alt="" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-violet-950/55 via-violet-900/45 to-violet-950/75" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(45,30,80,.35),transparent_70%)]" />
+          {/* Léger voile pour la lisibilité du texte, sans dégradé lourd (corr. Ben) */}
+          <div className="absolute inset-0 bg-violet-950/30" />
           <div className="absolute inset-0 bg-gradient-to-t from-cloud via-transparent to-transparent" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
             <span className="mb-4 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-white backdrop-blur sm:text-sm">
-              La plateforme qui te dit quoi faire
+              La plateforme qui te propose quoi faire
             </span>
             <motion.h1
               initial={{ y: 18 }}
               animate={{ y: 0 }}
               transition={{ delay: 0.1 }}
-              className="mb-6 max-w-3xl text-center text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_20px_rgba(40,20,70,.6)] sm:text-6xl"
+              className="mb-6 max-w-3xl text-center text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(40,20,70,.7)] sm:text-6xl"
             >
               Ta région bouge.<br />
-              <span className="bg-gradient-to-r from-teal-200 via-white to-teal-200 bg-clip-text text-transparent">
-                Ne rate plus rien.
-              </span>
+              Ne rate plus rien.
             </motion.h1>
             <motion.div
               initial={{ y: 18 }}
@@ -55,10 +58,16 @@ export default function Home() {
             >
               <SearchBar />
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {['Ce weekend', 'Concerts', 'Gratuit', 'En famille', 'Près de moi'].map((t) => (
+                {([
+                  ['Ce weekend', '/evenements?date=weekend'],
+                  ['Concerts', '/evenements?cat=culture'],
+                  ['Gratuit', '/evenements?prix=gratuit'],
+                  ['En famille', '/evenements?cat=famille'],
+                  ['Près de moi', '/evenements?geo=1'],
+                ] as const).map(([t, to]) => (
                   <Link
                     key={t}
-                    to="/evenements"
+                    to={to}
                     className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/30"
                   >
                     {t}
@@ -110,36 +119,61 @@ export default function Home() {
             <Sparkles className="text-amber-400" fill="#fbbf24" size={26} />
             Évènements premium
           </h2>
-          <div className="hidden gap-2 sm:flex">
-            <button
-              onClick={() => scrollBy(-1)}
-              className="grid h-11 w-11 place-items-center rounded-full bg-white text-violet-500 shadow-card transition-colors hover:bg-violet-50"
-            >
-              <ChevronLeft />
-            </button>
-            <button
-              onClick={() => scrollBy(1)}
-              className="grid h-11 w-11 place-items-center rounded-full bg-white text-violet-500 shadow-card transition-colors hover:bg-violet-50"
-            >
-              <ChevronRight />
-            </button>
-          </div>
         </div>
 
-        <div
-          ref={scroller}
-          className="nice-scroll -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-6 pt-4 sm:-mx-3 sm:px-3"
-        >
-          {premium.map((ev) => (
-            <div key={ev.id} className="w-[300px] shrink-0 snap-start sm:w-[330px]">
-              <PremiumCard ev={ev} onOpen={setModal} />
-            </div>
-          ))}
-          {/* Sponsored card */}
-          <div className="w-[300px] shrink-0 snap-start sm:w-[330px]">
-            <SponsoredCard />
-          </div>
+        {/* Grille 2×4 paginée — arrivée animée à chaque page (corr. Ben) */}
+        <div className="overflow-visible px-1 py-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="grid grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-4"
+            >
+              {pages[current]?.map((it, i) =>
+                it.kind === 'ev' ? (
+                  <motion.div
+                    key={it.ev.id}
+                    initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: i * 0.06, type: 'spring', stiffness: 260, damping: 22 }}
+                  >
+                    <PremiumCard ev={it.ev} onOpen={setModal} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="ad"
+                    initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: i * 0.06, type: 'spring', stiffness: 260, damping: 22 }}
+                  >
+                    <SponsoredCard />
+                  </motion.div>
+                )
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+        {/* Pagination par points */}
+        {pages.length > 1 && (
+          <div className="mt-6 flex items-center justify-center gap-2.5">
+            {pages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                aria-label={`Page ${i + 1}`}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  i === current
+                    ? 'w-7 bg-gradient-to-r from-violet-500 to-teal-400'
+                    : 'w-2.5 bg-violet-200 hover:bg-violet-300'
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="mt-8 flex justify-center">
           <Link

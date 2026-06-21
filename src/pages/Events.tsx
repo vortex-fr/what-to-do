@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search, SlidersHorizontal, X, ChevronDown, MapPin, Map as MapIcon,
-  List as ListIcon, CalendarDays, Tag, LocateFixed, Radio,
+  List as ListIcon, CalendarDays, Tag, LocateFixed, Radio, BellPlus,
 } from 'lucide-react';
 import { EVENTS, type WtdEvent } from '../data/events';
 import { CATEGORIES, CAT_MAP, REGION_GROUPS, type CategoryId } from '../data/categories';
 import { ListCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
 import CategoryIcon from '../components/CategoryIcon';
+import Mascot from '../components/Mascot';
 
 const MapView = lazy(() => import('../components/MapView'));
 
@@ -38,7 +39,8 @@ export default function Events() {
   );
   const [regions, setRegions] = useState<Set<string>>(new Set());
   const [subs, setSubs] = useState<Set<string>>(new Set());
-  const [dateF, setDateF] = useState<DateF>('all');
+  const [dateF, setDateF] = useState<DateF>((params.get('date') as DateF) || 'all');
+  const [freeOnly, setFreeOnly] = useState(params.get('prix') === 'gratuit');
   const [sort, setSort] = useState<Sort>('avenir');
   const [modal, setModal] = useState<WtdEvent | null>(null);
   const [active, setActive] = useState<string | null>(null);
@@ -74,7 +76,16 @@ export default function Events() {
     setQuery(params.get('q') ?? '');
     const c = params.get('cat')?.split(',').filter(Boolean) as CategoryId[] | undefined;
     if (c) setCats(new Set(c));
+    if (params.get('date')) setDateF(params.get('date') as DateF);
+    if (params.get('prix') === 'gratuit') setFreeOnly(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
+
+  // « Près de moi » depuis le hero
+  useEffect(() => {
+    if (params.get('geo') === '1' && !geo) askGeo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggle = <T,>(set: Set<T>, val: T, setter: (s: Set<T>) => void) => {
     const next = new Set(set);
@@ -88,6 +99,7 @@ export default function Events() {
     setRegions(new Set());
     setSubs(new Set());
     setDateF('all');
+    setFreeOnly(false);
     setGeo(null);
     setGeoErr('');
     setParams({});
@@ -113,6 +125,7 @@ export default function Events() {
         if (dateF === 'week' && (diff < 0 || diff > 7)) return false;
         if (dateF === 'month' && (diff < 0 || diff > 31)) return false;
       }
+      if (freeOnly && !(e.priceFrom === null || e.priceType === 'free')) return false;
       if (geo && distKm(geo.lat, geo.lng, e.lat, e.lng) > radius) return false;
       return true;
     });
@@ -123,7 +136,17 @@ export default function Events() {
       return a.category.localeCompare(b.category) || +new Date(a.dateStart) - +new Date(b.dateStart);
     });
     return list;
-  }, [cats, regions, subs, query, dateF, sort, geo, radius]);
+  }, [cats, regions, subs, query, dateF, sort, geo, radius, freeOnly]);
+
+  // Lien « créer une alerte » pré-rempli depuis les filtres courants
+  const alertUrl = (() => {
+    const p = new URLSearchParams();
+    if (query) p.set('q', query);
+    if (cats.size === 1) p.set('cat', [...cats][0]);
+    if (regions.size === 1) p.set('region', [...regions][0]);
+    const qs = p.toString();
+    return `/mes-recherches${qs ? `?${qs}` : ''}`;
+  })();
 
   const activeChips = [
     ...[...cats].map((c) => ({ k: 'cat' as const, v: c, label: CAT_MAP[c].label })),
@@ -281,7 +304,25 @@ export default function Events() {
             ))}
           </Dropdown>
 
-          {(activeChips.length > 0 || dateF !== 'all' || query || geo) && (
+          {/* Bouton "gratuit" rapide */}
+          <button
+            onClick={() => setFreeOnly((v) => !v)}
+            className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+              freeOnly ? 'border-teal-400 bg-teal-50 text-teal-600' : 'border-violet-200 bg-white text-violet-600'
+            }`}
+          >
+            Gratuit
+          </button>
+
+          {/* Créer une alerte (recherche sauvegardée façon Anibis) */}
+          <Link
+            to={alertUrl}
+            className="flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-2 text-sm font-bold text-violet-600 transition-colors hover:bg-violet-50"
+          >
+            <BellPlus size={16} /> Créer une alerte
+          </Link>
+
+          {(activeChips.length > 0 || dateF !== 'all' || query || geo || freeOnly) && (
             <button
               onClick={reset}
               className="rounded-full bg-violet-100 px-4 py-2 text-sm font-bold text-violet-600 transition-colors hover:bg-violet-200"
@@ -398,7 +439,7 @@ export default function Events() {
           <div className={`${mobileView === 'list' ? 'block' : 'hidden'} space-y-4 lg:block`}>
             {filtered.length === 0 && (
               <div className="rounded-3xl bg-white p-10 text-center shadow-card">
-                <img src="/assets/mascot.png" alt="" className="mx-auto h-20 w-20 object-contain opacity-80" />
+                <Mascot pose="empty" size={96} className="mx-auto" />
                 <p className="mt-3 text-lg font-bold text-violet-600">Aucun évènement trouvé</p>
                 <p className="text-violet-400">Essaie d'élargir tes filtres ou demande à Hi-5 !</p>
                 <button onClick={reset} className="mt-4 rounded-full bg-violet-500 px-6 py-2.5 font-bold text-white">

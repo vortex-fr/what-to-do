@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, MapPin, CalendarDays, Clock, Users, Crown, Heart, Share2, Ticket, Check, ExternalLink,
+  ArrowLeft, MapPin, CalendarDays, Clock, Users, Heart, Share2, Ticket, Check, ExternalLink, Sparkles,
 } from 'lucide-react';
 import { getEvent, EVENTS, type WtdEvent } from '../data/events';
 import { CAT_MAP } from '../data/categories';
@@ -11,6 +11,7 @@ import { useFavorites } from '../lib/store';
 import Countdown from '../components/Countdown';
 import { PremiumCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
+import Mascot from '../components/Mascot';
 
 const MapView = lazy(() => import('../components/MapView'));
 
@@ -26,7 +27,7 @@ export default function EventDetail() {
   if (!ev) {
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
-        <img src="/assets/mascot.png" alt="" className="mx-auto h-24 w-24 object-contain" />
+        <Mascot pose="empty" size={120} className="mx-auto" />
         <h1 className="mt-4 text-2xl font-extrabold">Évènement introuvable</h1>
         <Link to="/evenements" className="mt-4 inline-block rounded-full bg-violet-500 px-6 py-3 font-bold text-white">
           Voir tous les évènements
@@ -67,9 +68,13 @@ export default function EventDetail() {
           >
             {cat.label} · {ev.sub}
           </span>
-          <h1 className="mt-3 flex items-center gap-3 text-3xl font-extrabold text-white drop-shadow sm:text-5xl">
+          <h1 className="mt-3 flex flex-wrap items-center gap-3 text-3xl font-extrabold text-white drop-shadow sm:text-5xl">
             {ev.title}
-            {ev.premium && <Crown className="text-amber-400" fill="#fbbf24" size={32} />}
+            {ev.premium && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-white backdrop-blur">
+                <Sparkles size={14} className="text-amber-300" fill="#fcd34d" /> Premium
+              </span>
+            )}
           </h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 font-semibold text-white/90">
             <span className="flex items-center gap-1.5"><MapPin size={16} /> {ev.venue}, {ev.city}</span>
@@ -84,7 +89,7 @@ export default function EventDetail() {
           {/* Left */}
           <div>
             <div className="mb-6 w-fit">
-              <Countdown target={ev.dateStart} gradient={cat.gradient} size="lg" />
+              <Countdown target={ev.dateStart} end={ev.dateEnd} gradient={cat.gradient} size="lg" />
             </div>
 
             <h2 className="text-2xl font-extrabold text-ink">À propos de l'évènement</h2>

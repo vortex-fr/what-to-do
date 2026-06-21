@@ -6,6 +6,7 @@ import { EVENTS, type WtdEvent } from '../data/events';
 import { useFavorites } from '../lib/store';
 import { PremiumCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
+import Mascot from '../components/Mascot';
 
 export default function Favorites() {
   const { favorites } = useFavorites();
@@ -28,7 +29,7 @@ export default function Favorites() {
 
       {favEvents.length === 0 ? (
         <div className="mt-10 grid place-items-center rounded-3xl bg-white p-14 text-center shadow-card">
-          <img src="/assets/mascot.png" alt="" className="h-24 w-24 object-contain" />
+          <Mascot pose="idea-confetti" size={120} className="mx-auto" />
           <p className="mt-4 text-xl font-bold text-violet-600">Aucun favori… pour l'instant !</p>
           <p className="text-violet-400">Clique sur le ♥ des évènements qui te plaisent.</p>
           <Link to="/evenements" className="mt-5 rounded-full bg-gradient-to-r from-violet-500 to-teal-400 px-7 py-3 font-extrabold uppercase tracking-wide text-white shadow-card">

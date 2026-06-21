@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import Chatbot from './Chatbot';
 import CookieBanner from './CookieBanner';
+import Mascot from './Mascot';
 import { ChatProvider, useChat } from './ChatContext';
 
 function LayoutInner({ children }: { children: ReactNode }) {
@@ -21,7 +22,7 @@ function LayoutInner({ children }: { children: ReactNode }) {
         className="fixed bottom-5 right-4 z-[1090] grid h-16 w-16 place-items-center rounded-full bg-white shadow-float transition-transform hover:scale-110 active:scale-95 sm:right-6"
       >
         <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-violet-300/40" />
-        <img src="/assets/mascot.png" alt="Hi-5" className="h-12 w-12 object-contain" />
+        <Mascot pose="app" size={48} />
       </button>
 
       <Chatbot open={open} onClose={closeChat} seed={seed} />

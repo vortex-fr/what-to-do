@@ -1,4 +1,4 @@
-import { Heart, MapPin, CalendarDays, Crown } from 'lucide-react';
+import { Heart, MapPin, CalendarDays, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { WtdEvent } from '../data/events';
 import { CAT_MAP } from '../data/categories';
@@ -17,12 +17,12 @@ function PriceIcon() {
   return <span className="grid h-4 w-4 place-items-center font-extrabold text-violet-500">$</span>;
 }
 
-function PremiumBadge({ className = '' }: { className?: string }) {
+export function PremiumBadge({ className = '' }: { className?: string }) {
   return (
     <span
-      className={`flex items-center gap-1 rounded-full bg-white/85 py-1 pl-2 pr-2.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-500 shadow-sm backdrop-blur ${className}`}
+      className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-600/90 to-violet-500/90 py-1 pl-2 pr-2.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm backdrop-blur ${className}`}
     >
-      <Crown size={11} fill="#fbbf24" className="text-amber-400" />
+      <Sparkles size={11} className="text-amber-300" fill="#fcd34d" />
       Premium
     </span>
   );
@@ -90,7 +90,7 @@ export function PremiumCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent
         <h3 className="mb-3 line-clamp-1 text-[19px] font-extrabold text-ink">{ev.title}</h3>
         <Meta ev={ev} />
         <div className="mt-3.5">
-          <Countdown target={ev.dateStart} gradient={cat.gradient} />
+          <Countdown target={ev.dateStart} end={ev.dateEnd} gradient={cat.gradient} />
         </div>
       </div>
     </motion.div>
@@ -149,7 +149,7 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
           <Meta ev={ev} />
         </div>
         <div className="mt-3 max-w-[280px]">
-          <Countdown target={ev.dateStart} gradient={cat.gradient} size="sm" />
+          <Countdown target={ev.dateStart} end={ev.dateEnd} gradient={cat.gradient} size="sm" />
         </div>
       </div>
     </motion.div>

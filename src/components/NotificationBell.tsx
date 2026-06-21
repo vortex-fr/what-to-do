@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, BellRing, Trash2 } from 'lucide-react';
+import { Bell, BellRing, Trash2, X, SlidersHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '../lib/store';
 import { CATEGORIES } from '../data/categories';
+import Mascot from './Mascot';
 
 function timeAgo(ts: number): string {
   const s = Math.floor((Date.now() - ts) / 1000);
@@ -15,7 +16,8 @@ function timeAgo(ts: number): string {
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const { notifications, alerts, toggleAlert, markAllRead, clearNotifications } = useNotifications();
+  const { notifications, alerts, toggleAlert, markAllRead, clearNotifications, removeNotif } =
+    useNotifications();
   const unread = notifications.filter((n) => !n.read).length;
 
   const toggleOpen = () => {
@@ -91,34 +93,52 @@ export default function NotificationBell() {
               <div className="nice-scroll max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="px-4 py-8 text-center">
-                    <img src="/assets/mascot.png" alt="" className="mx-auto h-16 w-16 object-contain opacity-80" />
+                    <Mascot pose="silence" size={64} className="mx-auto" />
                     <p className="mt-2 text-sm font-bold text-violet-500">Rien pour l'instant</p>
                     <p className="text-xs text-violet-400">Active une alerte ci-dessus pour être averti·e !</p>
                   </div>
                 ) : (
-                  notifications.map((n) => {
-                    const inner = (
-                      <div className={`px-4 py-3 transition-colors hover:bg-violet-50 ${n.read ? '' : 'bg-violet-50/70'}`}>
-                        <div className="flex items-start gap-2">
-                          {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-teal-400" />}
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-ink">{n.title}</p>
-                            <p className="truncate text-xs text-violet-500">{n.body}</p>
-                            <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
-                          </div>
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`group flex items-start gap-2 border-b border-violet-50 px-4 py-3 transition-colors last:border-0 hover:bg-violet-50 ${
+                        n.read ? '' : 'bg-violet-50/70'
+                      }`}
+                    >
+                      {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-teal-400" />}
+                      {n.slug ? (
+                        <Link to={`/evenement/${n.slug}`} onClick={() => setOpen(false)} className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-ink">{n.title}</p>
+                          <p className="truncate text-xs text-violet-500">{n.body}</p>
+                          <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
+                        </Link>
+                      ) : (
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-ink">{n.title}</p>
+                          <p className="truncate text-xs text-violet-500">{n.body}</p>
+                          <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
                         </div>
-                      </div>
-                    );
-                    return n.slug ? (
-                      <Link key={n.id} to={`/evenement/${n.slug}`} onClick={() => setOpen(false)} className="block border-b border-violet-50 last:border-0">
-                        {inner}
-                      </Link>
-                    ) : (
-                      <div key={n.id} className="border-b border-violet-50 last:border-0">{inner}</div>
-                    );
-                  })
+                      )}
+                      <button
+                        onClick={() => removeNotif(n.id)}
+                        aria-label="Supprimer cette notification"
+                        className="shrink-0 rounded-full p-1 text-violet-300 opacity-0 transition-opacity hover:bg-violet-100 hover:text-rose-500 group-hover:opacity-100"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                  ))
                 )}
               </div>
+
+              {/* Lien vers les recherches sauvegardées */}
+              <Link
+                to="/mes-recherches"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center gap-2 border-t border-violet-100 bg-violet-50/50 py-3 text-sm font-bold text-violet-600 hover:bg-violet-100"
+              >
+                <SlidersHorizontal size={15} /> Gérer mes recherches & alertes
+              </Link>
             </motion.div>
           </>
         )}

@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, CalendarDays, Crown, Heart } from 'lucide-react';
+import { X, MapPin, CalendarDays, Heart } from 'lucide-react';
+import { PremiumBadge } from './EventCard';
 import type { WtdEvent } from '../data/events';
 import { CAT_MAP } from '../data/categories';
 import { formatLongDate, formatPrice } from '../lib/format';
@@ -84,9 +85,7 @@ function ModalInner({
         >
           {cat.label}
         </span>
-        {ev.premium && (
-          <Crown size={24} className="absolute right-3 top-3 text-amber-400 drop-shadow" fill="#fbbf24" />
-        )}
+        {ev.premium && <PremiumBadge className="absolute bottom-3 left-3" />}
         <button
           onClick={toggleFav}
           className="absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 backdrop-blur"
@@ -97,7 +96,7 @@ function ModalInner({
 
       {/* countdown straddling */}
       <div className="relative z-[1] mx-auto -mt-5 w-fit min-w-[60%]">
-        <Countdown target={ev.dateStart} gradient={cat.gradient} size="lg" />
+        <Countdown target={ev.dateStart} end={ev.dateEnd} gradient={cat.gradient} size="lg" />
       </div>
 
       <div className="px-3 pb-3 pt-4">
