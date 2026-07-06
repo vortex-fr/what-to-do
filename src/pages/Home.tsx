@@ -9,8 +9,9 @@ import EventModal from '../components/EventModal';
 import SearchBar from '../components/SearchBar';
 import CategoryIcon from '../components/CategoryIcon';
 
+// Image vibrante et colorée (concert), affichée SANS voile sombre (corr. Ben)
 const HERO =
-  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=2000&q=80';
+  'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=2000&q=80';
 
 const PER_PAGE = 8;
 
@@ -33,9 +34,9 @@ export default function Home() {
       <section className="relative">
         <div className="relative h-[440px] overflow-hidden sm:h-[500px]">
           <img src={HERO} alt="" className="h-full w-full object-cover" />
-          {/* Léger voile pour la lisibilité du texte, sans dégradé lourd (corr. Ben) */}
-          <div className="absolute inset-0 bg-violet-950/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-cloud via-transparent to-transparent" />
+          {/* Aucun voile sombre — image vibrante (corr. Ben). Seul un léger fondu
+              vers la page en bas pour la transition avec les catégories. */}
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-cloud to-transparent" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
             <span className="mb-4 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-white backdrop-blur sm:text-sm">
@@ -45,7 +46,7 @@ export default function Home() {
               initial={{ y: 18 }}
               animate={{ y: 0 }}
               transition={{ delay: 0.1 }}
-              className="mb-6 max-w-3xl text-center text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(40,20,70,.7)] sm:text-6xl"
+              className="mb-6 max-w-3xl text-center text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_10px_rgba(0,0,0,.55),0_1px_30px_rgba(0,0,0,.45)] sm:text-6xl"
             >
               Ta région bouge.<br />
               Ne rate plus rien.
@@ -68,7 +69,7 @@ export default function Home() {
                   <Link
                     key={t}
                     to={to}
-                    className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/30"
+                    className="rounded-full bg-black/25 px-4 py-1.5 text-sm font-semibold text-white shadow-sm backdrop-blur transition-colors hover:bg-black/40"
                   >
                     {t}
                   </Link>
