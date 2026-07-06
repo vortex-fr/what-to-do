@@ -447,27 +447,29 @@ export default function Events() {
           </span>
         </div>
 
-        {/* Mobile list/map toggle + bouton sous-catégories dessous (corr. Ben) */}
-        <div className="mt-4 flex gap-2 rounded-full bg-violet-100 p-1 lg:hidden">
-          {([['list', 'Liste', ListIcon], ['map', 'Carte', MapIcon]] as const).map(([v, l, Ic]) => (
-            <button
-              key={v}
-              onClick={() => setMobileView(v)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2 font-bold ${
-                mobileView === v ? 'bg-white text-violet-600 shadow' : 'text-violet-500'
-              }`}
-            >
-              <Ic size={16} /> {l}
-            </button>
-          ))}
+        {/* Mobile : toggle liste/carte + sous-catégories, sticky sous la nav (corr. Ben) */}
+        <div className="sticky top-[56px] z-30 -mx-4 mt-4 bg-cloud/95 px-4 pb-2 pt-2 backdrop-blur lg:hidden">
+          <div className="flex gap-2 rounded-full bg-violet-100 p-1">
+            {([['list', 'Liste', ListIcon], ['map', 'Carte', MapIcon]] as const).map(([v, l, Ic]) => (
+              <button
+                key={v}
+                onClick={() => setMobileView(v)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2 font-bold ${
+                  mobileView === v ? 'bg-white text-violet-600 shadow' : 'text-violet-500'
+                }`}
+              >
+                <Ic size={16} /> {l}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowFilters((s) => !s)}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-violet-600 shadow-card"
+          >
+            <SlidersHorizontal size={16} />
+            {showFilters ? 'Fermer les sous-catégories' : 'Sous-catégories'}
+          </button>
         </div>
-        <button
-          onClick={() => setShowFilters((s) => !s)}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-violet-600 shadow-card lg:hidden"
-        >
-          <SlidersHorizontal size={16} />
-          {showFilters ? 'Fermer les sous-catégories' : 'Sous-catégories'}
-        </button>
       </section>
 
       {/* Main grid */}

@@ -155,10 +155,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
         return true;
       }).slice(0, 2);
+      // lien vers la liste filtrée complète (corr. Ben : cliquer = voir toute la liste)
+      const p = new URLSearchParams();
+      if (s.query) p.set('q', s.query);
+      if (s.category) p.set('cat', s.category);
+      if (s.region) p.set('region', s.region);
+      const listUrl = `/evenements${p.toString() ? `?${p.toString()}` : ''}`;
       setTimeout(() => {
         pushNotif({
           title: `🔎 Recherche sauvegardée${s.query ? ` : « ${s.query} »` : ''}`,
-          body: 'Tu seras averti·e des nouveaux évènements qui correspondent.',
+          body: 'Clique pour voir tous les évènements qui correspondent.',
+          url: listUrl,
         });
         matches.forEach((e) =>
           pushNotif({
@@ -249,7 +256,8 @@ export interface Notif {
   body: string;
   ts: number;
   read: boolean;
-  slug?: string;
+  slug?: string; // event à ouvrir
+  url?: string; // ou lien interne (ex: liste filtrée d'une recherche)
 }
 export interface SavedSearch {
   id: string;

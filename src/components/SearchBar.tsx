@@ -28,7 +28,7 @@ export default function SearchBar({
           big ? 'ml-1 h-10 w-10 sm:h-11 sm:w-11' : 'h-8 w-8'
         }`}
       >
-        <img src="/assets/mascot.png" alt="" className={big ? 'h-7 w-7 object-contain' : 'h-5 w-5 object-contain'} />
+        <img src="/assets/hi5/shaka.png" alt="" className={big ? 'h-7 w-7 object-contain' : 'h-5 w-5 object-contain'} />
       </span>
       <input
         value={q}

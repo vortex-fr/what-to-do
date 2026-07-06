@@ -173,6 +173,17 @@ export default function EventDetail() {
                 <p className="mt-1.5 text-xs text-violet-400">{ev.capacity - ev.going} places restantes</p>
               </div>
 
+              {/* Mascotte "achat abouti" une fois réservé (corr. Ben) */}
+              {booked && (
+                <div className="mt-4 flex animate-pop items-center gap-3 rounded-2xl bg-teal-50 p-3">
+                  <Mascot pose="money" size={60} animated={false} className="shrink-0" />
+                  <div>
+                    <p className="font-extrabold text-teal-700">C'est validé ! 🎉</p>
+                    <p className="text-xs text-teal-600">On se voit sur place — hâte de t'y voir !</p>
+                  </div>
+                </div>
+              )}
+
               {ev.ticketUrl ? (
                 <>
                   <a

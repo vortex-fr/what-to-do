@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Trash2, BellPlus, Tag, MapPin, BellRing } from 'lucide-react';
+import { Search, Trash2, BellPlus, Tag, MapPin, BellRing, ArrowRight } from 'lucide-react';
+import { EVENTS } from '../data/events';
 import { useNotifications } from '../lib/store';
 import { CATEGORIES, CAT_MAP, REGION_GROUPS, type CategoryId } from '../data/categories';
 import Mascot from '../components/Mascot';
@@ -144,6 +145,30 @@ export default function SavedSearches() {
                       </span>
                     </div>
                   </div>
+                  {(() => {
+                    const p = new URLSearchParams();
+                    if (s.query) p.set('q', s.query);
+                    if (s.category) p.set('cat', s.category);
+                    if (s.region) p.set('region', s.region);
+                    const q = (s.query || '').toLowerCase();
+                    const count = EVENTS.filter((e) => {
+                      if (s.category && e.category !== s.category) return false;
+                      if (s.region && e.region !== s.region) return false;
+                      if (q) {
+                        const hay = `${e.title} ${e.city} ${e.sub} ${e.tags.join(' ')}`.toLowerCase();
+                        if (!hay.includes(q)) return false;
+                      }
+                      return true;
+                    }).length;
+                    return (
+                      <Link
+                        to={`/evenements${p.toString() ? `?${p.toString()}` : ''}`}
+                        className="flex shrink-0 items-center gap-1 rounded-full bg-violet-100 px-3 py-2 text-xs font-bold text-violet-600 hover:bg-violet-200"
+                      >
+                        {count} résultat{count > 1 ? 's' : ''} <ArrowRight size={14} />
+                      </Link>
+                    );
+                  })()}
                   <button
                     onClick={() => removeSavedSearch(s.id)}
                     aria-label="Supprimer"

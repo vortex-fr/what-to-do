@@ -5,7 +5,7 @@ export type Hi5Pose =
   | 'party' | 'yoga' | 'money' | 'garden' | 'climb' | 'stop' | 'conf'
   | 'silence' | 'app' | 'alpi' | 'movie' | 'streetfood' | 'couture'
   | 'confiance' | 'graduation' | 'drum' | 'cook' | 'foot' | 'wine'
-  | 'idea' | 'idea-confetti' | 'empty' | 'chill';
+  | 'idea' | 'idea-confetti' | 'empty' | 'chill' | 'shaka';
 
 /** Pose recommandée par catégorie (pour les vues filtrées). */
 export const POSE_BY_CATEGORY: Record<string, Hi5Pose> = {

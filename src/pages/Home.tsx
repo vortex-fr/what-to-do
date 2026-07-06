@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, TrendingUp, Star, Users } from 'lucide-react';
+import { Sparkles, ArrowRight, TrendingUp, Star, CalendarDays, MapPinned, Ticket } from 'lucide-react';
 import { EVENTS, type WtdEvent } from '../data/events';
 import { CATEGORIES } from '../data/categories';
 import { PremiumCard } from '../components/EventCard';
@@ -192,13 +192,13 @@ export default function Home() {
       <section className="mx-auto mt-20 max-w-7xl px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 rounded-[30px] bg-gradient-to-br from-violet-500 to-violet-700 p-6 text-white sm:grid-cols-4 sm:p-10">
           {[
-            { n: '1 200+', l: 'évènements', i: Star },
-            { n: '13', l: 'régions couvertes', i: TrendingUp },
-            { n: '85 000', l: 'sorties réservées', i: Users },
-            { n: '4.9/5', l: 'note des utilisateurs', i: Sparkles },
+            { n: '1 200+', l: 'évènements', i: CalendarDays },
+            { n: '26', l: 'régions couvertes', i: MapPinned },
+            { n: '85 000', l: 'sorties réservées', i: Ticket },
+            { n: '4.9/5', l: 'note des utilisateurs', i: Star },
           ].map((s) => (
             <div key={s.l} className="text-center">
-              <s.i className="mx-auto mb-2 text-teal-300" size={28} />
+              <s.i className="mx-auto mb-2 text-teal-300" size={26} strokeWidth={1.75} />
               <div className="text-3xl font-extrabold sm:text-4xl">{s.n}</div>
               <div className="text-sm font-semibold text-white/75">{s.l}</div>
             </div>

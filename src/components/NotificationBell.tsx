@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, BellRing, Trash2, X, SlidersHorizontal } from 'lucide-react';
+import { Bell, BellRing, Trash2, X, SlidersHorizontal, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNotifications } from '../lib/store';
+import { useNotifications, useFavorites } from '../lib/store';
+import { EVENTS } from '../data/events';
 import { CATEGORIES } from '../data/categories';
 import Mascot from './Mascot';
 
@@ -18,7 +19,9 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const { notifications, alerts, toggleAlert, markAllRead, clearNotifications, removeNotif } =
     useNotifications();
+  const { isFav, toggleFav } = useFavorites();
   const unread = notifications.filter((n) => !n.read).length;
+  const eventBySlug = (slug?: string) => (slug ? EVENTS.find((e) => e.slug === slug) : undefined);
 
   const toggleOpen = () => {
     const next = !open;
@@ -98,36 +101,55 @@ export default function NotificationBell() {
                     <p className="text-xs text-violet-400">Active une alerte ci-dessus pour être averti·e !</p>
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`group flex items-start gap-2 border-b border-violet-50 px-4 py-3 transition-colors last:border-0 hover:bg-violet-50 ${
-                        n.read ? '' : 'bg-violet-50/70'
-                      }`}
-                    >
-                      {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-teal-400" />}
-                      {n.slug ? (
-                        <Link to={`/evenement/${n.slug}`} onClick={() => setOpen(false)} className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-ink">{n.title}</p>
-                          <p className="truncate text-xs text-violet-500">{n.body}</p>
-                          <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
-                        </Link>
-                      ) : (
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-ink">{n.title}</p>
-                          <p className="truncate text-xs text-violet-500">{n.body}</p>
-                          <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
-                        </div>
-                      )}
-                      <button
-                        onClick={() => removeNotif(n.id)}
-                        aria-label="Supprimer cette notification"
-                        className="shrink-0 rounded-full p-1 text-violet-300 opacity-0 transition-opacity hover:bg-violet-100 hover:text-rose-500 group-hover:opacity-100"
+                  notifications.map((n) => {
+                    const ev = eventBySlug(n.slug);
+                    const to = n.slug ? `/evenement/${n.slug}` : n.url;
+                    const body = (
+                      <>
+                        <p className="truncate text-sm font-bold text-ink">{n.title}</p>
+                        <p className="truncate text-xs text-violet-500">{n.body}</p>
+                        <p className="mt-0.5 text-[11px] text-violet-300">{timeAgo(n.ts)}</p>
+                      </>
+                    );
+                    return (
+                      <div
+                        key={n.id}
+                        className={`group flex items-center gap-2 border-b border-violet-50 px-4 py-3 transition-colors last:border-0 hover:bg-violet-50 ${
+                          n.read ? '' : 'bg-violet-50/70'
+                        }`}
                       >
-                        <X size={15} />
-                      </button>
-                    </div>
-                  ))
+                        {!n.read && <span className="h-2 w-2 shrink-0 rounded-full bg-teal-400" />}
+                        {to ? (
+                          <Link to={to} onClick={() => setOpen(false)} className="min-w-0 flex-1">
+                            {body}
+                          </Link>
+                        ) : (
+                          <div className="min-w-0 flex-1">{body}</div>
+                        )}
+                        {/* Like direct sur un event (corr. Ben) */}
+                        {ev && (
+                          <button
+                            onClick={() => toggleFav(ev.id)}
+                            aria-label="Ajouter aux favoris"
+                            className="shrink-0 rounded-full p-1 transition-colors hover:bg-violet-100"
+                          >
+                            <Heart
+                              size={16}
+                              className={isFav(ev.id) ? 'text-rose-500' : 'text-violet-300'}
+                              fill={isFav(ev.id) ? '#f43f5e' : 'none'}
+                            />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => removeNotif(n.id)}
+                          aria-label="Supprimer cette notification"
+                          className="shrink-0 rounded-full p-1 text-violet-300 opacity-0 transition-opacity hover:bg-violet-100 hover:text-rose-500 group-hover:opacity-100"
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    );
+                  })
                 )}
               </div>
 

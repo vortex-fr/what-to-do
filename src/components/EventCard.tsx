@@ -65,7 +65,9 @@ export function PremiumCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen(ev)}
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`card-glow group block w-full cursor-pointer rounded-[26px] bg-white p-2.5 text-left shadow-card ${ev.premium ? 'is-premium' : ''}`}
+      className={`group block w-full cursor-pointer rounded-[26px] bg-white p-2.5 text-left shadow-card ${
+        ev.premium ? 'card-glow is-premium' : 'border border-violet-100'
+      }`}
       style={{ ['--glow' as string]: cat.gradient, ['--neon-delay' as string]: neonDelay(ev.id) }}
     >
       {/* image */}
@@ -109,7 +111,9 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
       onClick={() => onOpen(ev)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen(ev)}
       whileHover={{ y: -3 }}
-      className={`card-glow group flex h-[164px] w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card sm:h-[172px] ${ev.premium ? 'is-premium' : ''}`}
+      className={`group flex h-[164px] w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card sm:h-[172px] ${
+        ev.premium ? 'card-glow is-premium' : 'border border-violet-100'
+      }`}
       style={{ ['--glow' as string]: cat.gradient, ['--neon-delay' as string]: neonDelay(ev.id) }}
     >
       <div className="relative h-full w-32 shrink-0 overflow-hidden rounded-[18px] sm:w-44">

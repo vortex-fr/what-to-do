@@ -37,12 +37,13 @@ const empty = {
 
 const STEPS = ["L'événement", 'Organisateur', 'Détails', 'Publication'];
 
-/** Tarif premium : 2.50/j, dégressif (plus t'en prends, moins c'est cher). */
+/** Tarif premium dégressif — « plus t'en prends, moins c'est cher ». */
+const NORMAL_RATE = 3.0; // prix normal /jour (référence pour l'économie)
 function premiumRate(days: number): number {
-  if (days >= 30) return 2.0;
-  if (days >= 14) return 2.2;
-  if (days >= 7) return 2.35;
-  return 2.5;
+  if (days >= 30) return 2.2;
+  if (days >= 14) return 2.5;
+  if (days >= 7) return 2.7;
+  return 2.9;
 }
 
 export default function MyEvent() {
@@ -57,7 +58,9 @@ export default function MyEvent() {
   const [imgErr, setImgErr] = useState('');
   const [claimQuery, setClaimQuery] = useState('');
   const [premiumDays, setPremiumDays] = useState(23);
-  const [premiumMode, setPremiumMode] = useState<'days' | 'untilEnd'>('days');
+  const [premiumMode, setPremiumMode] = useState<'days' | 'dates' | 'untilEnd'>('days');
+  const [premiumStart, setPremiumStart] = useState('');
+  const [premiumEnd, setPremiumEnd] = useState('');
 
   const set = (k: keyof typeof form, v: string | boolean | number | null) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -140,9 +143,25 @@ export default function MyEvent() {
     setTimeout(() => setFlash(null), 3000);
   };
 
-  const rate = premiumRate(premiumDays);
-  const total = premiumMode === 'days' ? premiumDays * rate : 0;
-  const saved = premiumMode === 'days' ? (2.5 - rate) * premiumDays : 0;
+  // nombre de jours effectif selon le mode
+  const daysFromDates = (() => {
+    if (!premiumStart || !premiumEnd) return 0;
+    const d = Math.round(
+      (new Date(premiumEnd).getTime() - new Date(premiumStart).getTime()) / 86400000
+    ) + 1;
+    return d > 0 ? d : 0;
+  })();
+  const untilEndDays = (() => {
+    if (!form.dateEnd && !form.date) return 0;
+    const endTs = new Date(`${form.dateEnd || form.date}T23:59:59`).getTime();
+    const d = Math.ceil((endTs - Date.now()) / 86400000);
+    return d > 0 ? d : 1;
+  })();
+  const effectiveDays =
+    premiumMode === 'days' ? premiumDays : premiumMode === 'dates' ? daysFromDates : untilEndDays;
+  const rate = premiumRate(effectiveDays);
+  const total = effectiveDays * rate;
+  const saved = effectiveDays * (NORMAL_RATE - rate);
 
   const canNext =
     (step === 2 && form.orgName && form.orgEmail) ||
@@ -436,49 +455,61 @@ export default function MyEvent() {
 
                     <p className="mt-5 text-center text-sm font-extrabold text-ink">Tu gères ton abonnement premium :</p>
 
-                    <div className="mt-3 flex gap-1 rounded-full bg-violet-100 p-1 text-sm font-bold">
-                      {([['days', 'Nombre de jours'], ['untilEnd', "Jusqu'à la fin"]] as const).map(([v, l]) => (
-                        <button key={v} type="button" onClick={() => setPremiumMode(v)} className={`flex-1 rounded-full py-2 transition-colors ${premiumMode === v ? 'bg-white text-violet-700 shadow' : 'text-violet-500'}`}>
+                    <div className="mt-3 grid grid-cols-3 gap-1 rounded-full bg-violet-100 p-1 text-xs font-bold">
+                      {([['days', 'Nb de jours'], ['dates', 'Programmer'], ['untilEnd', "Jusqu'à la fin"]] as const).map(([v, l]) => (
+                        <button key={v} type="button" onClick={() => setPremiumMode(v)} className={`rounded-full py-2 transition-colors ${premiumMode === v ? 'bg-white text-violet-700 shadow' : 'text-violet-500'}`}>
                           {l}
                         </button>
                       ))}
                     </div>
 
-                    {premiumMode === 'days' ? (
-                      <>
-                        <div className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-violet-500">
-                          <Calendar size={16} className="text-violet-400" /> Programme une durée
-                        </div>
-                        <div className="mt-3 flex items-stretch gap-3 rounded-2xl bg-violet-50 p-4">
-                          <div className="flex-1 text-center">
-                            <input
-                              type="number"
-                              min={1}
-                              max={365}
-                              value={premiumDays}
-                              onChange={(e) => setPremiumDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))}
-                              className="w-full bg-transparent text-center text-3xl font-extrabold text-violet-600 outline-none"
-                            />
-                            <div className="text-xs font-bold uppercase text-violet-400">jours</div>
-                          </div>
-                          <div className="w-px bg-violet-200" />
-                          <div className="flex-1 text-center">
-                            <div className="text-3xl font-extrabold text-teal-500">{total.toFixed(2)}</div>
-                            <div className="text-xs font-bold uppercase text-violet-400">CHF</div>
-                          </div>
-                        </div>
-                        <p className="mt-2 text-center text-xs font-bold text-teal-600">
-                          {rate.toFixed(2)}/jour{saved > 0.01 ? ` · tu économises ${saved.toFixed(2)} CHF` : ''}
-                        </p>
-                        <p className="text-center text-[11px] text-violet-400">Plus tu en prends, moins c'est cher.</p>
-                      </>
-                    ) : (
-                      <p className="mt-4 rounded-2xl bg-violet-50 p-4 text-center text-sm font-semibold text-violet-600">
-                        Ton annonce reste premium jusqu'à la fin de ton événement.
+                    {/* Choix de la durée selon le mode */}
+                    {premiumMode === 'days' && (
+                      <div className="mt-3 flex items-center justify-center gap-3 rounded-2xl bg-violet-50 px-4 py-2">
+                        <button type="button" onClick={() => setPremiumDays((d) => Math.max(1, d - 1))} className="grid h-8 w-8 place-items-center rounded-full bg-white text-lg font-extrabold text-violet-500 shadow">−</button>
+                        <input type="number" min={1} max={365} value={premiumDays} onChange={(e) => setPremiumDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))} className="w-16 bg-transparent text-center text-2xl font-extrabold text-violet-600 outline-none" />
+                        <span className="text-sm font-bold text-violet-400">jours</span>
+                        <button type="button" onClick={() => setPremiumDays((d) => Math.min(365, d + 1))} className="grid h-8 w-8 place-items-center rounded-full bg-white text-lg font-extrabold text-violet-500 shadow">+</button>
+                      </div>
+                    )}
+                    {premiumMode === 'dates' && (
+                      <div className="mt-3 flex items-center gap-2 rounded-2xl bg-violet-50 p-3">
+                        <Calendar size={16} className="shrink-0 text-violet-400" />
+                        <input type="date" value={premiumStart} onChange={(e) => setPremiumStart(e.target.value)} className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-xs font-semibold outline-none" />
+                        <span className="text-xs font-bold text-violet-400">au</span>
+                        <input type="date" value={premiumEnd} onChange={(e) => setPremiumEnd(e.target.value)} className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-xs font-semibold outline-none" />
+                      </div>
+                    )}
+                    {premiumMode === 'untilEnd' && (
+                      <p className="mt-3 rounded-2xl bg-violet-50 p-3 text-center text-sm font-semibold text-violet-600">
+                        Premium jusqu'à la fin de ton événement{effectiveDays ? ` (≈ ${effectiveDays} j)` : ''}.
                       </p>
                     )}
 
-                    <button onClick={() => publish(true)} className="mt-5 w-full rounded-full bg-gradient-to-r from-violet-500 to-violet-600 py-3.5 font-extrabold uppercase tracking-wide text-white shadow-card transition-transform hover:scale-[1.02]">
+                    {/* Récap prix */}
+                    <div className="mt-3 flex items-stretch gap-3 rounded-2xl bg-gradient-to-br from-violet-500/10 to-teal-400/10 p-4">
+                      <div className="flex-1 text-center">
+                        <div className="text-3xl font-extrabold text-violet-600">{effectiveDays || '—'}</div>
+                        <div className="text-xs font-bold uppercase text-violet-400">jours</div>
+                      </div>
+                      <div className="w-px bg-violet-200" />
+                      <div className="flex-1 text-center">
+                        <div className="text-3xl font-extrabold text-teal-500">{total.toFixed(2)}</div>
+                        <div className="text-xs font-bold uppercase text-violet-400">CHF</div>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-center text-xs font-bold text-teal-600">
+                      {rate.toFixed(2)}/j{saved > 0.01 ? ` · ${saved.toFixed(0)}.– économisé` : ''}
+                    </p>
+                    <p className="text-center text-[11px] text-violet-400">Plus tu en prends, moins c'est cher.</p>
+
+                    <button
+                      onClick={() => effectiveDays > 0 && publish(true)}
+                      disabled={effectiveDays <= 0}
+                      className={`mt-5 w-full rounded-full py-3.5 font-extrabold uppercase tracking-wide text-white shadow-card transition-transform ${
+                        effectiveDays > 0 ? 'bg-gradient-to-r from-violet-500 to-violet-600 hover:scale-[1.02]' : 'cursor-not-allowed bg-violet-200'
+                      }`}
+                    >
                       Je publie premium
                     </button>
                   </div>
