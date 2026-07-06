@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Favorites from './pages/Favorites';
 import SavedSearches from './pages/SavedSearches';
 import NotFound from './pages/NotFound';
+import Verification from './pages/Verification';
 import { Terms, Privacy, About } from './pages/Legal';
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/connexion" element={<Login />} />
           <Route path="/favoris" element={<Favorites />} />
           <Route path="/mes-recherches" element={<SavedSearches />} />
+          <Route path="/verification-organisateur" element={<Verification />} />
           <Route path="/termes-et-conditions" element={<Terms />} />
           <Route path="/politique-de-confidentialite" element={<Privacy />} />
           <Route path="/a-propos" element={<About />} />

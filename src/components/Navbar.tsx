@@ -56,7 +56,7 @@ export default function Navbar() {
                 <>
                   {l.label}
                   <span
-                    className={`absolute -bottom-1.5 left-0 h-[3px] rounded-full bg-gradient-to-r from-violet-500 to-teal-400 transition-all duration-300 ${
+                    className={`absolute -bottom-1.5 left-0 h-[3px] rounded-full bg-teal-400 transition-all duration-300 ${
                       isActive ? 'w-full' : 'w-0 group-hover:w-full'
                     }`}
                   />

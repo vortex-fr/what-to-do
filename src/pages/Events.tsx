@@ -6,7 +6,7 @@ import {
   List as ListIcon, CalendarDays, Tag, LocateFixed, Radio, BellPlus,
 } from 'lucide-react';
 import { EVENTS, type WtdEvent } from '../data/events';
-import { CATEGORIES, CAT_MAP, REGION_GROUPS, type CategoryId } from '../data/categories';
+import { CATEGORIES, CAT_MAP, REGION_GROUPS, SUB_TO_CAT, type CategoryId } from '../data/categories';
 import { ListCard } from '../components/EventCard';
 import EventModal from '../components/EventModal';
 import CategoryIcon from '../components/CategoryIcon';
@@ -15,7 +15,7 @@ import Mascot from '../components/Mascot';
 const MapView = lazy(() => import('../components/MapView'));
 
 type Sort = 'avenir' | 'region' | 'categories';
-type DateF = 'all' | 'live' | 'weekend' | 'week' | 'month';
+type DateF = 'all' | 'live' | 'weekend' | 'week' | 'month' | 'custom';
 
 function distKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
   const R = 6371;
@@ -40,6 +40,8 @@ export default function Events() {
   const [regions, setRegions] = useState<Set<string>>(new Set());
   const [subs, setSubs] = useState<Set<string>>(new Set());
   const [dateF, setDateF] = useState<DateF>((params.get('date') as DateF) || 'all');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
   const [freeOnly, setFreeOnly] = useState(params.get('prix') === 'gratuit');
   const [sort, setSort] = useState<Sort>('avenir');
   const [modal, setModal] = useState<WtdEvent | null>(null);
@@ -99,18 +101,28 @@ export default function Events() {
     setRegions(new Set());
     setSubs(new Set());
     setDateF('all');
+    setCustomFrom('');
+    setCustomTo('');
     setFreeOnly(false);
     setGeo(null);
     setGeoErr('');
     setParams({});
   };
 
+  // catégories qui ont au moins une sous-catégorie sélectionnée
+  const catsWithSelectedSub = useMemo(
+    () => new Set([...subs].map((s) => SUB_TO_CAT[s]).filter(Boolean)),
+    [subs]
+  );
+
   const filtered = useMemo(() => {
     const now = new Date();
     let list = EVENTS.filter((e) => {
       if (cats.size && !cats.has(e.category)) return false;
       if (regions.size && !regions.has(e.region)) return false;
-      if (subs.size && !subs.has(e.sub)) return false;
+      // sous-cat par catégorie : si la catégorie de l'event a une sous-cat
+      // sélectionnée, l'event doit matcher ; sinon on montre toute la catégorie
+      if (catsWithSelectedSub.has(e.category) && !subs.has(e.sub)) return false;
       if (query) {
         const q = query.toLowerCase();
         const hay = `${e.title} ${e.city} ${e.sub} ${e.tags.join(' ')} ${e.organizer}`.toLowerCase();
@@ -124,6 +136,12 @@ export default function Events() {
         if (dateF === 'weekend' && (diff < 0 || diff > 9)) return false;
         if (dateF === 'week' && (diff < 0 || diff > 7)) return false;
         if (dateF === 'month' && (diff < 0 || diff > 31)) return false;
+        if (dateF === 'custom') {
+          const from = customFrom ? new Date(customFrom + 'T00:00:00').getTime() : -Infinity;
+          const to = customTo ? new Date(customTo + 'T23:59:59').getTime() : Infinity;
+          // l'évènement chevauche la plage choisie
+          if (end < from || start > to) return false;
+        }
       }
       if (freeOnly && !(e.priceFrom === null || e.priceType === 'free')) return false;
       if (geo && distKm(geo.lat, geo.lng, e.lat, e.lng) > radius) return false;
@@ -136,7 +154,7 @@ export default function Events() {
       return a.category.localeCompare(b.category) || +new Date(a.dateStart) - +new Date(b.dateStart);
     });
     return list;
-  }, [cats, regions, subs, query, dateF, sort, geo, radius, freeOnly]);
+  }, [cats, regions, subs, catsWithSelectedSub, query, dateF, customFrom, customTo, sort, geo, radius, freeOnly]);
 
   // Lien « créer une alerte » pré-rempli depuis les filtres courants
   const alertUrl = (() => {
@@ -180,25 +198,25 @@ export default function Events() {
         </div>
       </section>
 
-      {/* Category circles */}
-      <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
-        <div className="flex items-start justify-between gap-3 overflow-x-auto px-2 pb-3 pt-3 sm:justify-center sm:gap-10">
+      {/* Category circles — 5 en ligne sur mobile (grille), centré sur desktop */}
+      <section className="mx-auto max-w-7xl px-2 py-6 sm:px-6 sm:py-7">
+        <div className="grid grid-cols-5 gap-0.5 pt-1 sm:flex sm:justify-center sm:gap-10">
           {CATEGORIES.map((c) => {
             const on = cats.has(c.id);
             return (
               <button
                 key={c.id}
                 onClick={() => toggle(cats, c.id, setCats)}
-                className="group flex shrink-0 flex-col items-center gap-2"
+                className="group flex min-w-0 flex-col items-center gap-1.5 sm:gap-2"
               >
                 <CategoryIcon
                   cat={c}
                   size={66}
                   active={on || cats.size === 0}
-                  className={`transition-transform group-hover:-translate-y-1 ${on ? 'ring-4 ring-offset-2' : ''}`}
+                  className={`!h-[52px] !w-[52px] transition-transform group-hover:-translate-y-1 sm:!h-16 sm:!w-16 ${on ? 'ring-4 ring-offset-2' : ''}`}
                 />
                 <span
-                  className="max-w-[90px] text-center text-[11px] font-extrabold uppercase leading-tight"
+                  className="block w-full break-words text-center text-[8.5px] font-extrabold uppercase leading-[1.1] sm:max-w-[90px] sm:text-[11px]"
                   style={{ color: on || cats.size === 0 ? c.solid : '#a99fc0' }}
                 >
                   {c.label}
@@ -217,7 +235,15 @@ export default function Events() {
             open={openDrop === 'dates'}
             setOpen={(o) => setOpenDrop(o ? 'dates' : null)}
             icon={<CalendarDays size={16} />}
-            label={dateF === 'all' ? 'Dates' : { live: '● En cours', weekend: 'Ce weekend', week: 'Cette semaine', month: 'Ce mois' }[dateF]}
+            label={
+              dateF === 'all'
+                ? 'Dates'
+                : dateF === 'custom'
+                  ? customFrom || customTo
+                    ? `${customFrom || '…'} → ${customTo || '…'}`
+                    : 'Date choisie'
+                  : { live: '● En cours', weekend: 'Ce weekend', week: 'Cette semaine', month: 'Ce mois' }[dateF]
+            }
           >
             {([
               ['all', 'Toutes les dates'],
@@ -236,6 +262,30 @@ export default function Events() {
                 )}
               </DropItem>
             ))}
+            {/* Calendrier : date fixe ou plage (corr. Ben) */}
+            <div className="mt-1 border-t border-violet-100 px-3 pb-1 pt-2">
+              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wide text-violet-400">
+                Choisir une date / plage
+              </p>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => { setCustomFrom(e.target.value); setDateF('custom'); }}
+                  className="w-full rounded-lg border border-violet-200 bg-violet-50/60 px-2 py-1.5 text-xs font-semibold outline-none focus:border-violet-400"
+                />
+                <span className="text-xs font-bold text-violet-300">au</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => { setCustomTo(e.target.value); setDateF('custom'); }}
+                  className="w-full rounded-lg border border-violet-200 bg-violet-50/60 px-2 py-1.5 text-xs font-semibold outline-none focus:border-violet-400"
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] text-violet-300">
+                Laisse « au » vide pour une seule date.
+              </p>
+            </div>
           </Dropdown>
 
           <Dropdown
@@ -331,18 +381,25 @@ export default function Events() {
             </button>
           )}
 
-          <button
-            onClick={() => setShowFilters((s) => !s)}
-            className="ml-auto flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-violet-600 shadow-card lg:hidden"
-          >
-            <SlidersHorizontal size={16} /> Sous-catégories
-          </button>
         </div>
 
-        {/* Active chips */}
+        {/* Active chips — catégorie en couleur pleine, sous-cat en liseré couleur (corr. Ben) */}
         {activeChips.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
-            {activeChips.map((c) => (
+            {activeChips.map((c) => {
+              const catColor =
+                c.k === 'cat'
+                  ? CAT_MAP[c.v as CategoryId]
+                  : c.k === 'sub'
+                    ? CAT_MAP[SUB_TO_CAT[c.v]]
+                    : null;
+              const style =
+                c.k === 'cat' && catColor
+                  ? { background: catColor.gradient, color: '#fff', borderColor: 'transparent' }
+                  : c.k === 'sub' && catColor
+                    ? { borderColor: catColor.solid, color: catColor.solid }
+                    : undefined;
+              return (
               <button
                 key={`${c.k}-${c.v}`}
                 onClick={() => {
@@ -350,12 +407,14 @@ export default function Events() {
                   if (c.k === 'region') toggle(regions, c.v, setRegions);
                   if (c.k === 'sub') toggle(subs, c.v, setSubs);
                 }}
-                className="flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-sm font-semibold text-violet-600"
+                style={style}
+                className="flex items-center gap-1.5 rounded-full border-[1.5px] border-violet-200 bg-white px-3 py-1.5 text-sm font-bold text-violet-600"
               >
                 {c.label}
                 <X size={14} />
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -363,9 +422,11 @@ export default function Events() {
           <p className="mt-2 text-sm font-semibold text-rose-500">{geoErr}</p>
         )}
 
-        {/* Sort */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-bold uppercase tracking-wide text-violet-400">Trier selon :</span>
+        {/* Sort — tout sur une ligne sur mobile (corr. Ben) */}
+        <div className="mt-4 flex items-center gap-1.5 text-sm">
+          <span className="hidden shrink-0 font-bold uppercase tracking-wide text-violet-400 sm:inline">
+            Trier selon :
+          </span>
           {([
             ['avenir', 'À venir'],
             ['region', 'Région'],
@@ -374,17 +435,19 @@ export default function Events() {
             <button
               key={v}
               onClick={() => setSort(v)}
-              className={`rounded-full px-4 py-1.5 font-bold transition-colors ${
+              className={`shrink-0 rounded-full px-3 py-1.5 font-bold transition-colors sm:px-4 ${
                 sort === v ? 'bg-violet-500 text-white shadow-card' : 'text-violet-500 hover:bg-violet-100'
               }`}
             >
               {l}
             </button>
           ))}
-          <span className="ml-auto font-semibold text-violet-400">{filtered.length} résultat{filtered.length > 1 ? 's' : ''}</span>
+          <span className="ml-auto shrink-0 whitespace-nowrap text-xs font-semibold text-violet-400 sm:text-sm">
+            {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          </span>
         </div>
 
-        {/* Mobile list/map toggle */}
+        {/* Mobile list/map toggle + bouton sous-catégories dessous (corr. Ben) */}
         <div className="mt-4 flex gap-2 rounded-full bg-violet-100 p-1 lg:hidden">
           {([['list', 'Liste', ListIcon], ['map', 'Carte', MapIcon]] as const).map(([v, l, Ic]) => (
             <button
@@ -398,6 +461,13 @@ export default function Events() {
             </button>
           ))}
         </div>
+        <button
+          onClick={() => setShowFilters((s) => !s)}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-violet-600 shadow-card lg:hidden"
+        >
+          <SlidersHorizontal size={16} />
+          {showFilters ? 'Fermer les sous-catégories' : 'Sous-catégories'}
+        </button>
       </section>
 
       {/* Main grid */}
@@ -406,7 +476,14 @@ export default function Events() {
           {/* Sub-category tree */}
           <aside className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
             <div className="nice-scroll max-h-[70vh] space-y-4 overflow-y-auto rounded-3xl bg-white p-5 shadow-card lg:sticky lg:top-24">
-              {CATEGORIES.map((c) => (
+              <div className="flex items-center justify-between lg:hidden">
+                <span className="text-sm font-extrabold uppercase tracking-wide text-violet-400">Sous-catégories</span>
+                <button onClick={() => setShowFilters(false)} className="rounded-full p-1 text-violet-400 hover:bg-violet-100">
+                  <X size={18} />
+                </button>
+              </div>
+              {/* n'afficher que la/les catégorie(s) sélectionnée(s) ; tout si aucune (corr. Ben) */}
+              {CATEGORIES.filter((c) => cats.size === 0 || cats.has(c.id)).map((c) => (
                 <div key={c.id}>
                   <button
                     onClick={() => toggle(cats, c.id, setCats)}
@@ -421,11 +498,10 @@ export default function Events() {
                       <li key={s}>
                         <button
                           onClick={() => toggle(subs, s, setSubs)}
-                          className={`text-left text-[13.5px] transition-colors hover:text-violet-600 ${
-                            subs.has(s) ? 'font-bold text-violet-600' : 'text-violet-900/60'
-                          }`}
+                          className="text-left text-[13.5px] transition-colors"
+                          style={subs.has(s) ? { color: c.solid, fontWeight: 700 } : { color: 'rgba(43,39,64,.6)' }}
                         >
-                          {s}
+                          {subs.has(s) ? '• ' : ''}{s}
                         </button>
                       </li>
                     ))}

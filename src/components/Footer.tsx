@@ -18,7 +18,8 @@ export default function Footer({ onChat }: { onChat: () => void }) {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
             <h3 className="max-w-md text-2xl font-extrabold uppercase leading-tight sm:text-3xl">
-              Ne loupe plus aucun évènement avec notre newsletter !
+              Ne loupe plus aucun évènement<br />
+              avec notre newsletter !
             </h3>
             <form
               onSubmit={(e) => {
@@ -47,17 +48,17 @@ export default function Footer({ onChat }: { onChat: () => void }) {
           )}
 
           <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="relative">
+            <div>
               <Logo size={48} />
               <p className="mt-4 max-w-xs text-sm text-white/85">
-                La plateforme qui te dit quoi faire. Partout en Suisse, sors,
+                La plateforme qui te propose quoi faire. Partout en Suisse, sors,
                 vibre, partage.
               </p>
-              <Mascot
-                pose="party"
-                size={112}
-                delay={1}
-                className="pointer-events-none absolute -right-2 top-0 hidden drop-shadow-xl sm:block lg:-right-6"
+              {/* mascotte sous le texte, flottement haut-bas (corr. Ben) */}
+              <img
+                src="/assets/hi5/party.png"
+                alt="Hi-5"
+                className="mt-4 h-28 w-28 animate-floaty object-contain drop-shadow-xl"
               />
             </div>
             <div>

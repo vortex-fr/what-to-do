@@ -80,8 +80,9 @@ export default function Home() {
       </section>
 
       {/* ---------------- CATEGORIES ---------------- */}
-      <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 sm:px-6">
-        <div className="grid grid-cols-5 gap-1 rounded-[28px] bg-white/70 p-3 shadow-card backdrop-blur sm:gap-4 sm:p-6">
+      <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-2 sm:px-6">
+        {/* Mobile: 5 icônes en ligne sans encadré blanc (corr. Ben) ; carte sur sm+ */}
+        <div className="grid grid-cols-5 gap-0.5 rounded-[28px] p-1 sm:gap-4 sm:bg-white/70 sm:p-6 sm:shadow-card sm:backdrop-blur">
           {CATEGORIES.map((c, i) => (
             <motion.div
               key={c.id}
@@ -221,16 +222,20 @@ export default function Home() {
       <section className="mx-auto mt-20 max-w-7xl px-4 sm:px-6">
         <div className="grid items-center gap-8 rounded-[34px] bg-white p-8 shadow-card sm:grid-cols-3 sm:p-12">
           {[
-            { n: '1', t: 'Cherche', d: 'Dis à Hi-5 ou à la barre de recherche ce dont tu as envie.' },
-            { n: '2', t: 'Découvre', d: 'Filtre par catégorie, région et date. La carte fait le reste.' },
-            { n: '3', t: 'Sors', d: 'Mets en favoris, partage et profite. C\'est aussi simple que ça.' },
+            { n: '1', t: 'Cherche', d: ['Dis à Hi-5 ou à la barre de', 'recherche ce dont tu as envie.'] },
+            { n: '2', t: 'Découvre', d: ['Filtre par catégorie, région et', 'date. La carte fait le reste.'] },
+            { n: '3', t: 'Sors', d: ['Mets en favoris, partage et profite.', "C'est aussi simple que ça."] },
           ].map((s) => (
-            <div key={s.n} className="text-center">
-              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-teal-400 text-2xl font-extrabold text-white shadow-card">
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className="mb-3 grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-teal-400 text-lg font-extrabold text-white shadow-card">
                 {s.n}
               </div>
-              <h3 className="text-xl font-extrabold text-ink">{s.t}</h3>
-              <p className="mt-1 text-violet-700/70">{s.d}</p>
+              <h3 className="text-lg font-extrabold text-ink">{s.t}</h3>
+              <p className="mt-1 max-w-[240px] text-sm leading-snug text-violet-700/70">
+                {s.d[0]}
+                <br />
+                {s.d[1]}
+              </p>
             </div>
           ))}
         </div>

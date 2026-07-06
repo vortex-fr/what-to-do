@@ -130,6 +130,11 @@ export const CAT_MAP: Record<CategoryId, Category> = Object.fromEntries(
   CATEGORIES.map((c) => [c.id, c])
 ) as Record<CategoryId, Category>;
 
+/** sous-catégorie (libellé) → id de catégorie parente */
+export const SUB_TO_CAT: Record<string, CategoryId> = Object.fromEntries(
+  CATEGORIES.flatMap((c) => c.sub.map((s) => [s, c.id]))
+) as Record<string, CategoryId>;
+
 /** Régions groupées par canton, avec leurs districts */
 export interface RegionGroup {
   canton: string;

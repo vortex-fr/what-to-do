@@ -14,7 +14,7 @@ function neonDelay(id: string): string {
 }
 
 function PriceIcon() {
-  return <span className="grid h-4 w-4 place-items-center font-extrabold text-violet-500">$</span>;
+  return <span className="font-extrabold leading-none text-violet-500">$</span>;
 }
 
 export function PremiumBadge({ className = '' }: { className?: string }) {
@@ -43,9 +43,9 @@ function Meta({ ev }: { ev: WtdEvent }) {
           <MapPin size={15} className="shrink-0 text-violet-400" />
           <span className="font-semibold">{ev.city}</span>
         </span>
-        <span className="flex items-center gap-1 font-semibold">
+        <span className="inline-flex items-center gap-1 font-semibold leading-none">
           <PriceIcon />
-          {formatPrice(ev.priceFrom, ev.priceType)}
+          <span>{formatPrice(ev.priceFrom, ev.priceType)}</span>
         </span>
       </div>
     </div>
@@ -109,15 +109,15 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
       onClick={() => onOpen(ev)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpen(ev)}
       whileHover={{ y: -3 }}
-      className={`card-glow group flex w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card ${ev.premium ? 'is-premium' : ''}`}
+      className={`card-glow group flex h-[164px] w-full cursor-pointer gap-3 rounded-[24px] bg-white p-2.5 text-left shadow-card sm:h-[172px] ${ev.premium ? 'is-premium' : ''}`}
       style={{ ['--glow' as string]: cat.gradient, ['--neon-delay' as string]: neonDelay(ev.id) }}
     >
-      <div className="relative w-32 shrink-0 overflow-hidden rounded-[18px] sm:w-44">
+      <div className="relative h-full w-32 shrink-0 overflow-hidden rounded-[18px] sm:w-44">
         <img
           src={ev.image}
           alt={ev.title}
           loading="lazy"
-          className="h-full min-h-32 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <span
           className="absolute left-0 top-2 rounded-r-full py-1 pl-2 pr-3 text-[11px] font-extrabold text-white shadow"
@@ -128,9 +128,9 @@ export function ListCard({ ev, onOpen }: { ev: WtdEvent; onOpen: (e: WtdEvent) =
         {ev.premium && <PremiumBadge className="absolute bottom-2 left-2" />}
       </div>
 
-      <div className="flex flex-1 flex-col justify-between py-1 pr-1">
+      <div className="flex min-w-0 flex-1 flex-col justify-between py-1 pr-1">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[18px] font-extrabold leading-tight text-ink">{ev.title}</h3>
+          <h3 className="line-clamp-2 text-[18px] font-extrabold leading-tight text-ink">{ev.title}</h3>
           <button
             onClick={(e) => {
               e.stopPropagation();
